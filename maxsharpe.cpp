@@ -9,21 +9,24 @@
 int main(int argc, char *argv[])
 {
     // load and check files
-    std::ifstream f("x0.dat");
+    std::ifstream f("x1.csv");
     if(!f) {
-        std::cout << "Cannot open input file "<< filename << ".\n";
+        std::cout << "Cannot open input file "<< f << ".\n";
         return 1;
     }
 
     // read data 
-    vector<vector<double>> data(f);
+    int N_row;
+    int N_col;
+    std::vector<std::vector<double> > data = readtxt("x1.csv",N_row,N_col);
+    std:: cout<< "Size of data is "<<N_row<<" rows, "<<N_col<< " cols.\n";
 
     // output data to verify
-    cout << "The data is:\n";
+    std::cout << "The data is:\n";
     for (int i=0;i<N_row;i++){
         for (int j=0;j<N_col;j++){
-            cout << data[i][j] << " ";
+            std::cout << data[i][j] << " ";
         }
-        cout << "\n";
+        std::cout << "\n";
     } 
 }

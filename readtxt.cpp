@@ -3,21 +3,25 @@
 #include <iostream>
 #include <vector>
 #include <string>
+#include <stdlib.h>
 #include <readtxt.h>
 
-vector<vector<double>> data(const ifstream& f){
+std::vector<std::vector<double> > readtxt(const std::string& filename,int& N_row, int& N_col){
     // read 2D vector from file 
-    vector<vector<double>> rows; 
-    vector<int> col_per_row;
-    string temp;
-    int N_row=0;
+    std::vector<std::vector<double> > rows; 
+    std::vector<int> col_per_row;
+    std::string temp;
+    N_row = 0;
+    std::ifstream f;
+    f.open(filename.c_str());
+    std::cout << "The file name is "<< filename << "\n";
     while(getline(f,temp)){
-        istringstrem buffer(temp);
-        vector<double> row;
-        string temp2;
+        std::istringstream buffer(temp);
+        std::vector<double> row;
+        std::string temp2;
         int col=0;
-        while(getline(buffer,temp2,' ')){
-            row.push_back(atof(temp2.c_str()))
+        while(getline(buffer,temp2,',')){
+            row.push_back(atof(temp2.c_str()));
             col++;
         }
         rows.push_back(row);
@@ -26,17 +30,18 @@ vector<vector<double>> data(const ifstream& f){
     }
 
     // verify if the No. of col. on each row is the same
-    int N_col = col_per_row[0];
+    N_col = col_per_row[0];
     int i = 0;
     while(i<N_row-1 && col_per_row[i+1]==N_col){
         N_col = col_per_row[i+1];
         i++;
     }
     if (i==N_row-1){
-        cout<<"The No. of Col. on each row is the same.\n";
+        std::cout<<"The No. of Col. on each row is the same.\n";
     }
     else{
-        cout<<"The No. of Col. on each row is NOT the same.\n";
+        std::cout<<"The No. of Col. on each row is NOT the same.\n";
     }
-        
+
+    return rows;        
 }
