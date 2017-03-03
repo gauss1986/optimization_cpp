@@ -1,1 +1,1 @@
-vector<vector<double>> data(const string& f);
+vector<vector<double>> data(const ifstream& f);

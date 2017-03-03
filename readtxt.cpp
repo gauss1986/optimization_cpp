@@ -5,8 +5,7 @@
 #include <string>
 #include <readtxt.h>
 
-vector<vector<double>> data(const string& f){
-    
+vector<vector<double>> data(const ifstream& f){
     // read 2D vector from file 
     vector<vector<double>> rows; 
     vector<int> col_per_row;
