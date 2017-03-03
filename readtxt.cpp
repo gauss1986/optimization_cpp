@@ -7,14 +7,18 @@
 #include <readtxt.h>
 
 std::vector<std::vector<double> > readtxt(const std::string& filename,int& N_row, int& N_col){
+    // open and check file
+    std::ifstream f;
+    f.open(filename.c_str());
+    if(!f) {
+        std::cout << "Cannot open input file "<< filename.c_str() << ".\n";
+    }
+
     // read 2D vector from file 
     std::vector<std::vector<double> > rows; 
     std::vector<int> col_per_row;
     std::string temp;
     N_row = 0;
-    std::ifstream f;
-    f.open(filename.c_str());
-    std::cout << "The file name is "<< filename << "\n";
     while(getline(f,temp)){
         std::istringstream buffer(temp);
         std::vector<double> row;
@@ -36,12 +40,11 @@ std::vector<std::vector<double> > readtxt(const std::string& filename,int& N_row
         N_col = col_per_row[i+1];
         i++;
     }
-    if (i==N_row-1){
-        std::cout<<"The No. of Col. on each row is the same.\n";
-    }
-    else{
+    if (i!=N_row-1){
         std::cout<<"The No. of Col. on each row is NOT the same.\n";
     }
+
+    std:: cout<< "Size of "<<filename.c_str()<<" is "<<N_row<<" rows, "<<N_col<< " cols.\n";
 
     return rows;        
 }
