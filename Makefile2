@@ -1,0 +1,16 @@
+CXXFLAGS =  -I/opt/intel/composer_xe_2013.3.171/mkl/include /usr/local/include 
+LDFLAGS =  -L/opt/intel/composer_xe_2013.3.171/mkl/lib -lmkl_intel_lp64 -lmkl_sequential -lmkl_core -lgsl -lgslcblas
+LDLIBS = -lpthread -lm
+CXX = icc
+
+all:	HW3_1 
+
+HW3_1:	HW3_1.o
+	$(CXX) $(LDFLAGS) -o HW3_1 HW3_1.o $(LDLIBS)
+    
+HW3_1.o:	HW3_1.cc   
+	$(CXX) $(CXXFLAGS) -c -o  HW3_1.o HW3_1.cc
+
+
+clean:
+	rm -f HW3_1 HW3_1.o

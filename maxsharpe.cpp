@@ -21,4 +21,11 @@ int main(int argc, char *argv[])
     std::vector<std::vector<double> >  x0 = readtxt(f_x0,N_x0_row,N_x0_col);
     std::vector<std::vector<double> >  x = readtxt(f_x,N_x_row,N_x_col);
     std::vector<std::vector<double> >  y = readtxt(f_y,N_y_row,N_y_col);
+
+    // get statistics of data
+    std::vector<std::vector<double> > x0_reog = reorgdata(x0, N_x0_row, N_x0_col);
+    std::vector<std::vector<double> > x_reog = reorgdata(x, N_x_row, N_x_col);
+    std::vector<std::vector<double> > y_reog = reorgdata(y, N_y_row, N_y_col);
+   
+     
 }

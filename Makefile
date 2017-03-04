@@ -1,7 +1,7 @@
-CXXFLAGS = -Wall -g -O3
-LDFLAGS = -g
-LDLIBS = 
-CXX = g++
+CXXFLAGS =  -Wall -O3 -I/opt/intel/composer_xe_2013.3.171/mkl/include 
+LDFLAGS =  -L/opt/intel/composer_xe_2013.3.171/mkl/lib -lmkl_intel_lp64 -lmkl_sequential -lmkl_core -lgsl -lgslcblas 
+LDLIBS = -lpthread -lm
+CXX = icc
 
 all: maxsharpe
 
@@ -15,4 +15,4 @@ maxsharpe: maxsharpe.o readtxt.o
 	$(CXX) $(LDFLAGS) -o maxsharpe maxsharpe.o readtxt.o $(LDLIBS)
 
 clean:
-	rm -f maxsharpe.o readtxt.o
+	rm -f maxsharpe maxsharpe.o readtxt.o
