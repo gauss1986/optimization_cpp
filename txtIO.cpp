@@ -47,7 +47,7 @@ std::vector<std::vector<double> > readtxt(const std::string& filename,int& N_row
     // output size of data
     std:: cout<< "Size of "<<filename.c_str()<<" is "<<N_row<<" rows, "<<N_col<< " cols.\n";
 
-    printdata(rows,10,N_col);
+    //printdata(rows,10,N_col);
 
     // return data
     return rows;        
@@ -76,3 +76,4 @@ void printdata(const std::vector<std::vector<double> >& data, int N_row, int N_c
         std::cout << std::endl;
     }
 }
+

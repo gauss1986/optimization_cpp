@@ -18,7 +18,6 @@ extern void print_matrix( char* desc, MKL_INT m, MKL_INT n, double* a, MKL_INT l
 extern void print_vector_norm( char* desc, MKL_INT m, MKL_INT n, double* a, MKL_INT lda );
 double **matrix(int n,int m);
 void free_matrix(double **a);
-template <class T> void printdata_tmp(T& data, int N_row, int N_col);
 
 int main(int argc, char *argv[])
 {
@@ -40,7 +39,6 @@ int main(int argc, char *argv[])
     std::vector<std::vector<double> >  x0 = readtxt(f_x0,N_x0_row,N_x0_col);
     std::vector<std::vector<double> >  x = readtxt(f_x,N_x_row,N_x_col);
     std::vector<std::vector<double> >  y = readtxt(f_y,N_y_row,N_y_col);
-    printdata_tmp<std::vector<std::vector<double> > >(x0,10,1);
     // output size of data
     //std:: cout<< "Size of x0 is "<<N_x0_row<<" rows, "<<N_x0_col<< " cols.\n";
     //std:: cout<< "Size of x is "<<N_x_row<<" rows, "<<N_x_col<< " cols.\n";
@@ -134,16 +132,5 @@ void print_vector_norm( char* desc, MKL_INT m, MKL_INT n, double* a, MKL_INT lda
                 printf( " %6.2f", norm );
         }
         printf( "\n" );
-}
-//void printdata(const std::vector<std::vector<double> >& data, int N_row, int N_col){
-template <class T> void printdata_tmp(T& data, int N_row, int N_col){
-    // output content 
-    std::cout << "Printing the first " << N_row << " rows of the data" << std::endl;
-    for (int i=0;i<N_row;i++){    
-        for (int j=0;j<N_col;j++){
-            std::cout << data[i][j] << " ";
-        }
-        std::cout << std::endl;
-    }
 }
 
