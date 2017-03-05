@@ -10,15 +10,11 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <txtIO.h>
+#include <stat.h>
 #include <algorithm>
 #include <mkl_lapacke.h>
 #include <gsl/gsl_cblas.h>
-#include <boost/bind/bind.hpp>
-#include <boost/ref.hpp>
-#include <boost/lambda/lambda.hpp>
-#include <boost/accumulators/accumulators.hpp>
-#include <boost/accumulators/statistics/variance.hpp>
-#include <boost/accumulators/statistics/mean.hpp>
+
 
 // Author Lin Gao, lingao.gao@mail.utoronto.ca
 // Created March 5, 2017 for max sharpe problem at Bluewater Technologies Inc.
@@ -52,10 +48,6 @@ int main(int argc, char *argv[])
     std::vector<std::vector<double> >  x0 = readtxt(f_x0,N_x0_row,N_x0_col);
     std::vector<std::vector<double> >  x = readtxt(f_x,N_x_row,N_x_col);
     std::vector<std::vector<double> >  y = readtxt(f_y,N_y_row,N_y_col);
-    // output size of data
-    //std:: cout<< "Size of x0 is "<<N_x0_row<<" rows, "<<N_x0_col<< " cols.\n";
-    //std:: cout<< "Size of x is "<<N_x_row<<" rows, "<<N_x_col<< " cols.\n";
-    //std:: cout<< "Size of y is "<<N_y_row<<" rows, "<<N_y_col<< " cols.\n";
     // sanity check
     if ((N_x0_row != N_x_row) | (N_x_row != N_y_row)){
         std::cout << "The No. or records in x0, x and y are not consistent!\n";
@@ -70,12 +62,27 @@ int main(int argc, char *argv[])
         m = N_x_col;
     }
 
-    // get stat of inputs
-    std::vector<std::vector<double> >  x0_col = reorgdata(x0,N_x0_row,N_x0_col);
-    boost::accumulators::accumulator_set<double, boost::accumulators::features<boost::accumulators::tag::mean,boost::accumulators::tag::variance(boost::accumulators::lazy)> > acc;
-    std::for_each(x0_col[0].begin(), x0_col[0].end(), boost::bind<void>(boost::ref(acc),boost::lambda::_1));
-    std::cout << "Mean of x0 is " << boost::accumulators::mean(acc) << std::endl;
-    std::cout << "Std of x0 is " << sqrt(boost::accumulators::variance(acc)) << std::endl;
+    // compute and output the statistics of inputs
+    std::vector<std::vector<double> > x0_col = reorgdata(x0,N_x0_row,N_x0_col);
+    std::vector<std::vector<double> > x0_stat = simplestat(x0_col, 1);
+    std::vector<std::vector<double> > x_col = reorgdata(x,N_x_row,N_x_col);
+    std::vector<std::vector<double> > x_stat = simplestat(x_col, n+1);
+    std::vector<std::vector<double> > y_col = reorgdata(y,N_y_row,N_y_col);
+    std::vector<std::vector<double> > y_stat = simplestat(y_col, 1);
+    std::cout << "Mean of x0 is " << x0_stat[0][0] << std::endl;
+    std::cout << "Std of x0 is " << x0_stat[0][1] << std::endl;
+    std::cout << "Mean of x is ";
+    for (int i=0;i<n+1;i++){
+        std::cout << x_stat[i][0] << " ";
+    }
+    std::cout << std::endl;
+    std::cout << "Std of x is ";
+    for (int i=0;i<n+1;i++){
+        std::cout << x_stat[i][1] << " ";
+    }
+    std::cout << std::endl;
+    std::cout << "Mean of y is " << y_stat[0][0] << std::endl;
+    std::cout << "Std of y is " << y_stat[0][1] << std::endl;
 
     // construct newx, newy
     newx = matrix(N,n+1);

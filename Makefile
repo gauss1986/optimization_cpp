@@ -8,11 +8,14 @@ all: maxsharpe
 txtIO.o: txtIO.cpp
 	$(CXX) -c $(CXXFLAGS) -I . -o txtIO.o txtIO.cpp
 
+stat.o: stat.cpp
+	$(CXX) -c $(CXXFLAGS) -I . -o stat.o stat.cpp
+
 maxsharpe.o: maxsharpe.cpp
 	$(CXX) -c $(CXXFLAGS) -I . -o maxsharpe.o maxsharpe.cpp
 
-maxsharpe: txtIO.o maxsharpe.o
-	$(CXX) $(LDFLAGS) -o maxsharpe txtIO.o maxsharpe.o $(LDLIBS)
+maxsharpe: txtIO.o stat.o maxsharpe.o
+	$(CXX) $(LDFLAGS) -o maxsharpe txtIO.o stat.o maxsharpe.o $(LDLIBS)
 
 clean:
-	rm -f maxsharpe maxsharpe.o txtIO.o
+	rm -f maxsharpe maxsharpe.o txtIO.o stat.o
