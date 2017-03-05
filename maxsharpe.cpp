@@ -73,7 +73,7 @@ int main(int argc, char *argv[])
         newy[i] = std::accumulate(y[i].begin(),y[i].end(),0); 
         //std::cout << "newx=" << newx[i][0] << "," << newx[i][1] << "," << newx[i][2] << ". newy=" << newy[i] << "." << std::endl;
     }
-    //printdata(newx,10,3);
+    printdata_tmp<double** >(newx,10,3);
     //printdata(newy,10,1);
 
     // uses DGELSY to handle rank-deficient problems more realiably than DGELS.
