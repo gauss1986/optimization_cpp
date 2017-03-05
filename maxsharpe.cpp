@@ -5,12 +5,17 @@
 #include <string>
 #include <functional>
 #include <numeric>
+#include <stdio.h>
 #include <math.h>
 #include <stdlib.h>
-#include <readtxt.h>
+#include <stdio.h>
+#include <txtIO.h>
 #include <mkl_lapacke.h>
 #include <gsl/gsl_cblas.h>
 
+/* Auxiliary routines prototypes */
+extern void print_matrix( char* desc, MKL_INT m, MKL_INT n, double* a, MKL_INT lda );
+extern void print_vector_norm( char* desc, MKL_INT m, MKL_INT n, double* a, MKL_INT lda );
 double **matrix(int n,int m);
 void free_matrix(double **a);
 
@@ -34,16 +39,20 @@ int main(int argc, char *argv[])
     std::vector<std::vector<double> >  x0 = readtxt(f_x0,N_x0_row,N_x0_col);
     std::vector<std::vector<double> >  x = readtxt(f_x,N_x_row,N_x_col);
     std::vector<std::vector<double> >  y = readtxt(f_y,N_y_row,N_y_col);
+    // output size of data
+    //std:: cout<< "Size of x0 is "<<N_x0_row<<" rows, "<<N_x0_col<< " cols.\n";
+    //std:: cout<< "Size of x is "<<N_x_row<<" rows, "<<N_x_col<< " cols.\n";
+    //std:: cout<< "Size of y is "<<N_y_row<<" rows, "<<N_y_col<< " cols.\n";
     // re-organize data (swap col & row)
     //std::vector<std::vector<double> > x0_reog = reorgdata(x0, N_x0_row, N_x0_col);
     //std::vector<std::vector<double> > x_reog = reorgdata(x, N_x_row, N_x_col);
     //std::vector<std::vector<double> > y_reog = reorgdata(y, N_y_row, N_y_col);
     // sanity check
-    if ((N_x0_col != N_x_col) | (N_x_col != N_y_col)){
+    if ((N_x0_row != N_x_row) | (N_x_row != N_y_row)){
         std::cout << "The No. or records in x0, x and y are not consistent!\n";
     } 
     else{
-        N = N_x0_col; 
+        N = N_x0_row; 
     }
     if (N_x_col != N_y_col){
         std::cout << "The No. of columns in x and y are not consistent!\n";
@@ -57,10 +66,13 @@ int main(int argc, char *argv[])
     newy = new double[N];
     for (int i=0;i<N;i++){
         newx[i][0] = m;
-        newx[i][1] = x0[i][1]*m;
+        newx[i][1] = x0[i][0]*m;
         newx[i][2] = std::accumulate(x[i].begin(),x[i].end(),0);
         newy[i] = std::accumulate(y[i].begin(),y[i].end(),0); 
+        //std::cout << "newx=" << newx[i][0] << "," << newx[i][1] << "," << newx[i][2] << ". newy=" << newy[i] << "." << std::endl;
     }
+    printdata(newx,10,3);
+    printdata(newy,10,1);
 
     // uses DGELSY to handle rank-deficient problems more realiably than DGELS.
     // Refer to http://www.netlib.org/lapack/lug/node71.html for details.
@@ -69,8 +81,19 @@ int main(int argc, char *argv[])
         jpvt[i] = 0;
     }
     int rank;
-    LAPACKE_dgelsy(LAPACK_ROW_MAJOR, N, n+1, 1, &(newx[0][0]), n+1, newy, 1, jpvt, 1e-11, &rank);
-    std::cout << "Results of OLS:" << newy[0] << "," << newy[1] << "," << newy[2] << "\n";     
+    //LAPACKE_dgelsy(LAPACK_ROW_MAJOR, N, n+1, 1, &(newx[0][0]), n+1, &(newy[0]), 1, &(jpvt[0]), 1e-11, &rank);
+    LAPACKE_dgels(LAPACK_ROW_MAJOR, 'N', N, n+1, 1, &(newx[0][0]), n+1, &(newy[0]), 1);
+    /* Print least squares solution */
+    print_matrix( "Least squares solution", n+1, 1, newy, 1 );
+    /* Print residual sum of squares for the solution */
+    print_vector_norm( "Residual sum of squares for the solution", N-n-1, 1, &newy[n+1], 1 );
+    /* Print details of QR factorization */
+    //print_matrix( "Details of QR factorization", N, n+1, &(newx[0][0]), n+1 );
+
+    // free matrix and array
+    free_matrix(newx);
+    delete[] newy;
+    delete[] jpvt;
 }
 
 double **matrix(int n,int m) {
@@ -86,4 +109,27 @@ double **matrix(int n,int m) {
 void free_matrix(double **a) {
     delete[] a[0];
     delete[] a;
+}
+
+/* Auxiliary routine: printing a matrix */
+void print_matrix( char* desc, MKL_INT m, MKL_INT n, double* a, MKL_INT lda ) {
+        MKL_INT i, j;
+        printf( "\n %s\n", desc );
+        for( i = 0; i < m; i++ ) {
+                for( j = 0; j < n; j++ ) printf( " %6.2f", a[i*lda+j] );
+                printf( "\n" );
+        }
+}
+
+/* Auxiliary routine: printing norms of matrix columns */
+void print_vector_norm( char* desc, MKL_INT m, MKL_INT n, double* a, MKL_INT lda ) {
+        MKL_INT i, j;
+        double norm;
+        printf( "\n %s\n", desc );
+        for( j = 0; j < n; j++ ) {
+                norm = 0.0;
+                for( i = 0; i < m; i++ ) norm += a[i*lda+j] * a[i*lda+j];
+                printf( " %6.2f", norm );
+        }
+        printf( "\n" );
 }

@@ -4,7 +4,7 @@
 #include <vector>
 #include <string>
 #include <stdlib.h>
-#include <readtxt.h>
+#include <txtIO.h>
 
 std::vector<std::vector<double> > readtxt(const std::string& filename,int& N_row, int& N_col){
     // open and check file
@@ -47,6 +47,8 @@ std::vector<std::vector<double> > readtxt(const std::string& filename,int& N_row
     // output size of data
     std:: cout<< "Size of "<<filename.c_str()<<" is "<<N_row<<" rows, "<<N_col<< " cols.\n";
 
+    printdata(rows,10,N_col);
+
     // return data
     return rows;        
 }
@@ -62,4 +64,15 @@ std::vector<std::vector<double> > reorgdata(const std::vector<std::vector<double
     }
     
     return newdata;
+}
+    
+void printdata(const std::vector<std::vector<double> >& data, int N_row, int N_col){
+    // output content 
+    std::cout << "Printing the first " << N_row << " rows of the data" << std::endl;
+    for (int i=0;i<N_row;i++){    
+        for (int j=0;j<N_col;j++){
+            std::cout << data[i][j] << " ";
+        }
+        std::cout << std::endl;
+    }
 }
