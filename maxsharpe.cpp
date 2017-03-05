@@ -67,12 +67,14 @@ int main(int argc, char *argv[])
     for (int i=0;i<N;i++){
         newx[i][0] = m;
         newx[i][1] = x0[i][0]*m;
-        newx[i][2] = std::accumulate(x[i].begin(),x[i].end(),0);
-        newy[i] = std::accumulate(y[i].begin(),y[i].end(),0); 
+        newx[i][2] = std::accumulate(x[i].begin(),x[i].end(),0.0);
+        newy[i] = std::accumulate(y[i].begin(),y[i].end(),0.0); 
         //std::cout << "newx=" << newx[i][0] << "," << newx[i][1] << "," << newx[i][2] << ". newy=" << newy[i] << "." << std::endl;
     }
-    printdata_tmp<double** >(newx,10,3);
-    //printdata(newy,10,1);
+    std::cout << "newx is:" << std::endl;
+    printdata_2D<double **>(newx,10,3);
+    std::cout << "newy is:" << std::endl;
+    printdata_1D<double *>(newy,10);
 
     // uses DGELSY to handle rank-deficient problems more realiably than DGELS.
     // Refer to http://www.netlib.org/lapack/lug/node71.html for details.
