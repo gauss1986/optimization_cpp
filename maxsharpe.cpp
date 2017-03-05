@@ -43,10 +43,6 @@ int main(int argc, char *argv[])
     //std:: cout<< "Size of x0 is "<<N_x0_row<<" rows, "<<N_x0_col<< " cols.\n";
     //std:: cout<< "Size of x is "<<N_x_row<<" rows, "<<N_x_col<< " cols.\n";
     //std:: cout<< "Size of y is "<<N_y_row<<" rows, "<<N_y_col<< " cols.\n";
-    // re-organize data (swap col & row)
-    //std::vector<std::vector<double> > x0_reog = reorgdata(x0, N_x0_row, N_x0_col);
-    //std::vector<std::vector<double> > x_reog = reorgdata(x, N_x_row, N_x_col);
-    //std::vector<std::vector<double> > y_reog = reorgdata(y, N_y_row, N_y_col);
     // sanity check
     if ((N_x0_row != N_x_row) | (N_x_row != N_y_row)){
         std::cout << "The No. or records in x0, x and y are not consistent!\n";
@@ -71,22 +67,22 @@ int main(int argc, char *argv[])
         newy[i] = std::accumulate(y[i].begin(),y[i].end(),0.0); 
         //std::cout << "newx=" << newx[i][0] << "," << newx[i][1] << "," << newx[i][2] << ". newy=" << newy[i] << "." << std::endl;
     }
-    std::cout << "newx is:" << std::endl;
-    printdata_2D<double **>(newx,10,3);
-    std::cout << "newy is:" << std::endl;
-    printdata_1D<double *>(newy,10);
+    printdata_2D<double **>(newx,"First 10 rows in newx are:",10,3);
+    printdata_1D<double *>(newy,"First 10 entries in newy are:",10);
 
-    // uses DGELSY to handle rank-deficient problems more realiably than DGELS.
+    // DGELS is general purpose and most efficient.
+    // Use DGELSY to handle rank-deficient problems more realiably than DGELS.
     // Refer to http://www.netlib.org/lapack/lug/node71.html for details.
-    jpvt = new int[n+1];
-    for (int i=0;i<n+1;i++){
-        jpvt[i] = 0;
-    }
-    int rank;
+    //jpvt = new int[n+1];
+    //for (int i=0;i<n+1;i++){
+    //    jpvt[i] = 0;
+    //}
+    //int rank;
     //LAPACKE_dgelsy(LAPACK_ROW_MAJOR, N, n+1, 1, &(newx[0][0]), n+1, &(newy[0]), 1, &(jpvt[0]), 1e-11, &rank);
     LAPACKE_dgels(LAPACK_ROW_MAJOR, 'N', N, n+1, 1, &(newx[0][0]), n+1, &(newy[0]), 1);
     /* Print least squares solution */
-    print_matrix( "Least squares solution", n+1, 1, newy, 1 );
+    //print_matrix( "Least squares solution", n+1, 1, newy, 1 );
+    printdata_1D<double *>(newy,"Least squares solution",n+1);
     /* Print residual sum of squares for the solution */
     print_vector_norm( "Residual sum of squares for the solution", N-n-1, 1, &newy[n+1], 1 );
     /* Print details of QR factorization */
@@ -95,7 +91,7 @@ int main(int argc, char *argv[])
     // free matrix and array
     free_matrix(newx);
     delete[] newy;
-    delete[] jpvt;
+    //delete[] jpvt;
 }
 
 double **matrix(int n,int m) {
