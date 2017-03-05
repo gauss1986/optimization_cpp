@@ -10,8 +10,21 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <txtIO.h>
+#include <algorithm>
 #include <mkl_lapacke.h>
 #include <gsl/gsl_cblas.h>
+#include <boost/bind/bind.hpp>
+#include <boost/ref.hpp>
+#include <boost/lambda/lambda.hpp>
+#include <boost/accumulators/accumulators.hpp>
+#include <boost/accumulators/statistics/variance.hpp>
+#include <boost/accumulators/statistics/mean.hpp>
+
+// Author Lin Gao, lingao.gao@mail.utoronto.ca
+// Created March 5, 2017 for max sharpe problem at Bluewater Technologies Inc.
+
+// The OLS routine is calling mkl_lapack package
+// The statistics is calling BOOST package
 
 /* Auxiliary routines prototypes */
 extern void print_matrix( char* desc, MKL_INT m, MKL_INT n, double* a, MKL_INT lda );
@@ -57,6 +70,13 @@ int main(int argc, char *argv[])
         m = N_x_col;
     }
 
+    // get stat of inputs
+    std::vector<std::vector<double> >  x0_col = reorgdata(x0,N_x0_row,N_x0_col);
+    boost::accumulators::accumulator_set<double, boost::accumulators::features<boost::accumulators::tag::mean,boost::accumulators::tag::variance(boost::accumulators::lazy)> > acc;
+    std::for_each(x0_col[0].begin(), x0_col[0].end(), boost::bind<void>(boost::ref(acc),boost::lambda::_1));
+    std::cout << "Mean of x0 is " << boost::accumulators::mean(acc) << std::endl;
+    std::cout << "Std of x0 is " << sqrt(boost::accumulators::variance(acc)) << std::endl;
+
     // construct newx, newy
     newx = matrix(N,n+1);
     newy = new double[N];
@@ -81,7 +101,6 @@ int main(int argc, char *argv[])
     //LAPACKE_dgelsy(LAPACK_ROW_MAJOR, N, n+1, 1, &(newx[0][0]), n+1, &(newy[0]), 1, &(jpvt[0]), 1e-11, &rank);
     LAPACKE_dgels(LAPACK_ROW_MAJOR, 'N', N, n+1, 1, &(newx[0][0]), n+1, &(newy[0]), 1);
     /* Print least squares solution */
-    //print_matrix( "Least squares solution", n+1, 1, newy, 1 );
     printdata_1D<double *>(newy,"Least squares solution",n+1);
     /* Print residual sum of squares for the solution */
     print_vector_norm( "Residual sum of squares for the solution", N-n-1, 1, &newy[n+1], 1 );
