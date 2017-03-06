@@ -1,0 +1,2 @@
+module purge
+module load intel/15.0.6 openmpi/intel/1.6.4 boost/1.60.0-intel
