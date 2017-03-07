@@ -18,8 +18,8 @@
 class stat{
     double min, max, mean, median, std, skew, kurt;
     public:
-        std::vector<double>  compute(const std::vector<double> &data);
-        void report();
+        std::vector<double>  compute(const std::vector<double> &data); // compute the statistics
+        void report(); // report the statistics
 };
 
 std::vector<double> stat::compute(const std::vector<double> &data){
@@ -48,30 +48,25 @@ std::vector<double> stat::compute(const std::vector<double> &data){
     return stat_1D_val;
 }
 
-void stat:report (){
+void stat::report (){
     // report statistics
     std::cout << "Statistics:" << std::endl;
 
     // modify report details here
-    std::cout << " Mean ";
-    for (int i=0;i<N;i++){
-        std::cout << mean << ",";
-    }
-    std::cout << std::endl;
-    std::cout << " Std ";
-    for (int i=0;i<N;i++){
-        std::cout << stat_2D[i][1] << ",";
-    }
-    std::cout << std::endl;
+    std::cout << " Min      ";
+    std::cout << min << std::endl;
+    std::cout << " Max      ";
+    std::cout << max << std::endl;
+    std::cout << " Mean     ";
+    std::cout << mean << std::endl;
+    std::cout << " Median   ";
+    std::cout << median << std::endl;
+    std::cout << " Std      ";
+    std::cout << std << std::endl;
     std::cout << " Skewness ";
-    for (int i=0;i<N;i++){
-        std::cout << stat_2D[i][2] << ",";
-    }
-    std::cout << std::endl;
+    std::cout << skew << std::endl;
     std::cout << " Kurtosis ";
-    for (int i=0;i<N;i++){
-        std::cout << stat_2D[i][3] << ",";
-    }
+    std::cout << kurt << std::endl;
     std::cout << std::endl;
 }
 
@@ -81,9 +76,12 @@ std::vector<std::vector<double> > simplestat(const std::vector<std::vector<doubl
     for (int i=0;i<N;i++){
         stat stat_1D;
         std::vector<double> stat_1D_val = stat_1D.compute(data[i]);
+
+        std::cout << " DOF " << i << std::endl;
+        stat_1D.report();
+
         stat_2D.push_back(stat_1D_val); // store stat_1D into stat
     }
 
-    
     return stat_2D;
 }
