@@ -63,46 +63,16 @@ int main(int argc, char *argv[])
     }
 
     // compute and output the statistics of inputs
+    std::cout << "x0" << std::endl;
     std::vector<std::vector<double> > x0_col = reorgdata(x0,N_x0_row,N_x0_col);
     std::vector<std::vector<double> > x0_stat = simplestat(x0_col, 1);
+    std::cout << "x" << std::endl;
     std::vector<std::vector<double> > x_col = reorgdata(x,N_x_row,N_x_col);
     std::vector<std::vector<double> > x_stat = simplestat(x_col, n+1);
+    std::cout << "y" << std::endl;
     std::vector<std::vector<double> > y_col = reorgdata(y,N_y_row,N_y_col);
     std::vector<std::vector<double> > y_stat = simplestat(y_col, 1);
     std::cout << std::endl;
-    std::cout << "Statistics of x0:" << std::endl;
-    std::cout << " Mean " << x0_stat[0][0] << std::endl;
-    std::cout << " Std " << x0_stat[0][1] << std::endl;
-    std::cout << " Skewness " << x0_stat[0][2] << std::endl;
-    std::cout << " Kurtosis " << x0_stat[0][3] << std::endl;
-    std::cout << std::endl;
-    std::cout << "Statistics of x:" << std::endl;
-    std::cout << " Mean ";
-    for (int i=0;i<n+1;i++){
-        std::cout << x_stat[i][0] << ",";
-    }
-    std::cout << std::endl;
-    std::cout << " Std ";
-    for (int i=0;i<n+1;i++){
-        std::cout << x_stat[i][1] << ",";
-    }
-    std::cout << std::endl;
-    std::cout << " Skewness ";
-    for (int i=0;i<n+1;i++){
-        std::cout << x_stat[i][2] << ",";
-    }
-    std::cout << std::endl;
-    std::cout << " Kurtosis ";
-    for (int i=0;i<n+1;i++){
-        std::cout << x_stat[i][3] << ",";
-    }
-    std::cout << std::endl;
-    std::cout << std::endl;
-    std::cout << "Statistics of y:" << std::endl;
-    std::cout << " Mean " << y_stat[0][0] << std::endl;
-    std::cout << " Std " << y_stat[0][1] << std::endl;
-    std::cout << " Skewness " << y_stat[0][2] << std::endl;
-    std::cout << " Kurtosis " << y_stat[0][3] << std::endl;
 
     // construct newx, newy
     newx = matrix(N,n+1);
