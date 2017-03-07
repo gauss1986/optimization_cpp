@@ -32,6 +32,7 @@ std::vector<double> stat::compute(const std::vector<double> &data){
     accumulator_set<double, features<tag::mean, tag::variance(lazy), tag::median, tag::skewness, tag::kurtosis> > acc;
     std::for_each(data.begin(), data.end(), boost::bind<void>(boost::ref(acc),boost::lambda::_1)); // put data on each dim into acc
     mean = boost::accumulators::mean(acc); 
+    median = boost::accumulators::median(acc); 
     std = sqrt(boost::accumulators::variance(acc));
     skew = boost::accumulators::skewness(acc);
     kurt = boost::accumulators::kurtosis(acc);
