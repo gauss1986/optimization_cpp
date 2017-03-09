@@ -1,6 +1,6 @@
 CXXFLAGS =  -Wall -O2 -I/opt/intel/composer_xe_2013.3.171/mkl/include -I${SCINET_BOOST_INC} -I${SCINET_ARMADILLO_INC} 
-LDFLAGS =  -L${MKLROOT}/lib/intel64 -L${SCINET_BOOST_LIB} -lmkl_intel_lp64 -lmkl_sequential -lmkl_core -lpthread -lgsl -lgslcblas -lm
-LDLIBS = -lpthread -lboost_thread
+LDFLAGS =  -L${MKLROOT}/lib/intel64 -L${SCINET_BOOST_LIB} -lmkl_intel_lp64 -lmkl_sequential -lmkl_core -lpthread -lgsl -lgslcblas
+LDLIBS = -lpthread -lboost_thread -lm
 CXX = icpc
 
 all: maxsharpe
