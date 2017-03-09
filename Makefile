@@ -1,21 +1,36 @@
-CXXFLAGS =  -Wall -O2 -I/opt/intel/composer_xe_2013.3.171/mkl/include -I${SCINET_BOOST_INC} 
-LDFLAGS =  -L/opt/intel/composer_xe_2013.3.171/mkl/lib -L${SCINET_BOOST_LIB} -lmkl_intel_lp64 -lmkl_sequential -lmkl_core -lgsl -lgslcblas  
-LDLIBS = -lpthread -lboost_thread -lm
-CXX = icc
-
-all: maxsharpe
-
-txtIO.o: txtIO.cpp
-	$(CXX) -c $(CXXFLAGS) -I . -o txtIO.o txtIO.cpp
-
-stat.o: stat.cpp
-	$(CXX) -c $(CXXFLAGS) -I . -o stat.o stat.cpp
-
-maxsharpe.o: maxsharpe.cpp
-	$(CXX) -c $(CXXFLAGS) -I . -o maxsharpe.o maxsharpe.cpp
-
-maxsharpe: txtIO.o stat.o maxsharpe.o
-	$(CXX) $(LDFLAGS) -o maxsharpe txtIO.o stat.o maxsharpe.o $(LDLIBS)
-
+## module load intel/13.1.1
+# module load armadillo/3.910.0
+# # #
+# #
+CXX=icpc
+# #
+EXTRA_LIB_FLAGS =  -L$(MKLROOT)/lib/intel64 -lmkl_intel_lp64 -lmkl_sequential -lmkl_core -lpthread -lm
+# #
+LIB_FLAGS = $(EXTRA_LIB_FLAGS)
+# #
+OPT = -O3
+# # ## As the Armadillo library uses recursive templates,
+# # ## compilation times depend on the level of optimisation:
+# # ##
+# # ## -O0: quick compilation, but the resulting program will be slow
+# # ## -O1: good trade-off between compilation time and execution speed
+# # ## -O2: produces programs which have almost all possible speedups,
+# # ##      but compilation takes longer
+# #
+# #
+# #
+CXXFLAGS = $(OPT) -I$(SCINET_ARMADILLO_INC)
+# #
+all: armadillotest
+# #
+# #
+armadillotest: test.cpp
+	$(CXX) $(CXXFLAGS) $(EXTRAFLAGS)  -o $@  $<  $(LIB_FLAGS)
+# 	#
+# 	#
+.PHONY: clean
+# 	#
 clean:
-	rm -f maxsharpe maxsharpe.o txtIO.o stat.o
+# 	#
+# 	#
+
