@@ -1,3 +1,7 @@
+#include <sstream>
+#include <fstream>
+#include <iostream>
+#include <stdio.h>
 #include <Rmath.h>
 #include <R.h>
 
