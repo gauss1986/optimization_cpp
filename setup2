@@ -1,0 +1,3 @@
+module purge
+module load gcc/6.2.0 openmpi/gcc/1.6.4 ddt 
+module load valgrind extras nano

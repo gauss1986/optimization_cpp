@@ -4,17 +4,13 @@
 #include <vector>
 #include <string>
 #include <functional>
-#include <numeric>
 #include <stdio.h>
 #include <math.h>
-#include <stdlib.h>
-#include <stdio.h>
 #include <txtIO.h>
 #include <stat.h>
 #include <algorithm>
-#include <mkl_lapacke.h>
 #include <gsl/gsl_cblas.h>
-
+#include <OLS.h>
 
 // Author Lin Gao, lingao.gao@mail.utoronto.ca
 // Created March 5, 2017 for max sharpe problem at Bluewater Technologies Inc.
@@ -35,7 +31,6 @@ int main(int argc, char *argv[])
     int n = 2; // No. of vars. in linear model
     int m = 0; // No. of contracts    
     double **newx;
-    double *newy; 
     int *jpvt;
 
     // load and check files
@@ -74,55 +69,8 @@ int main(int argc, char *argv[])
     std::vector<std::vector<double> > y_stat = simplestat(y_col, 1);
     std::cout << std::endl;
 
-    // construct newx, newy
-    newx = matrix(N,n+1);
-    newy = new double[N];
-    for (int i=0;i<N;i++){
-        newx[i][0] = m;
-        newx[i][1] = x0[i][0]*m;
-        newx[i][2] = std::accumulate(x[i].begin(),x[i].end(),0.0);
-        newy[i] = std::accumulate(y[i].begin(),y[i].end(),0.0); 
-        //std::cout << "newx=" << newx[i][0] << "," << newx[i][1] << "," << newx[i][2] << ". newy=" << newy[i] << "." << std::endl;
-    }
-    printdata_2D<double **>(newx,"First 10 rows in newx are:",10,3);
-    printdata_1D<double *>(newy,"First 10 entries in newy are:",10);
+    double *newy = OLS(N, n, m, x0, x, y);
 
-    // DGELS is general purpose and most efficient.
-    // Use DGELSY to handle rank-deficient problems more realiably than DGELS.
-    // Refer to http://www.netlib.org/lapack/lug/node71.html for details.
-    //jpvt = new int[n+1];
-    //for (int i=0;i<n+1;i++){
-    //    jpvt[i] = 0;
-    //}
-    //int rank;
-    //LAPACKE_dgelsy(LAPACK_ROW_MAJOR, N, n+1, 1, &(newx[0][0]), n+1, &(newy[0]), 1, &(jpvt[0]), 1e-11, &rank);
-    LAPACKE_dgels(LAPACK_ROW_MAJOR, 'N', N, n+1, 1, &(newx[0][0]), n+1, &(newy[0]), 1);
-    /* Print least squares solution */
-    printdata_1D<double *>(newy,"Least squares solution",n+1);
-    /* Print residual sum of squares for the solution */
-    print_vector_norm( "Residual sum of squares for the solution", N-n-1, 1, &newy[n+1], 1 );
-    /* Print details of QR factorization */
-    //print_matrix( "Details of QR factorization", N, n+1, &(newx[0][0]), n+1 );
-
-    // free matrix and array
-    free_matrix(newx);
-    delete[] newy;
-    //delete[] jpvt;
-}
-
-double **matrix(int n,int m) {
-    double **a = new double * [n];
-    a[0] = new double [n*m];
-    
-    for (int i=1; i<n; i++)
-        a[i] = &a[0][i*m];
-    
-    return a;
-}
-
-void free_matrix(double **a) {
-    delete[] a[0];
-    delete[] a;
 }
 
 /* Auxiliary routine: printing a matrix */
@@ -135,16 +83,4 @@ void print_matrix( char* desc, MKL_INT m, MKL_INT n, double* a, MKL_INT lda ) {
         }
 }
 
-/* Auxiliary routine: printing norms of matrix columns */
-void print_vector_norm( char* desc, MKL_INT m, MKL_INT n, double* a, MKL_INT lda ) {
-        MKL_INT i, j;
-        double norm;
-        printf( "\n %s\n", desc );
-        for( j = 0; j < n; j++ ) {
-                norm = 0.0;
-                for( i = 0; i < m; i++ ) norm += a[i*lda+j] * a[i*lda+j];
-                printf( " %6.2f", norm );
-        }
-        printf( "\n" );
-}
 

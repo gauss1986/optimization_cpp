@@ -11,11 +11,14 @@ txtIO.o: txtIO.cpp
 stat.o: stat.cpp
 	$(CXX) -c $(CXXFLAGS) -I . -o stat.o stat.cpp
 
+OLS.o: OLS.cpp
+	$(CXX) -c $(CXXFLAGS) -I . -o OLS.o OLS.cpp
+
 maxsharpe.o: maxsharpe.cpp
 	$(CXX) -c $(CXXFLAGS) -I . -o maxsharpe.o maxsharpe.cpp
 
-maxsharpe: txtIO.o stat.o maxsharpe.o
-	$(CXX) $(LDFLAGS) -o maxsharpe txtIO.o stat.o maxsharpe.o $(LDLIBS)
+maxsharpe: txtIO.o stat.o OLS.o maxsharpe.o
+	$(CXX) $(LDFLAGS) -o maxsharpe txtIO.o stat.o OLS.o maxsharpe.o $(LDLIBS)
 
 test: test.cpp
 	$(CXX) $(CXXFLAGS) -o $@ $< $(LDFLAGS) 
@@ -30,4 +33,4 @@ testR: testR.o testR_main.o
 	$(CXX) $(LDFLAGS) -o testR testR.o testR_main.o $(LDLIBS)
 
 clean:
-	rm -f test maxsharpe maxsharpe.o txtIO.o stat.o testR.o testR_main.o testR
+	rm -f test maxsharpe maxsharpe.o txtIO.o stat.o testR.o testR_main.o OLS.o testR
