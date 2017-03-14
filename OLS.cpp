@@ -11,48 +11,60 @@
 #include <OLS.h>
 #include "armadillo"
 
+using namespace arma;
+
 class OLS_stat{
     // Compute OLS stats
     // Reference 1: https://en.wikipedia.org/wiki/Simple_linear_regression#Normality_assumption 
     // Reference 2: http://stats.stackexchange.com/questions/44838/how-are-the-standard-errors-of-coefficients-calculated-in-a-regression/44841#44841
     // Reference 3: http://www.netlib.org/lapack/lawnspdf/lawn193.pdf
     // Reference 4: http://qed.econ.queensu.ca/pub/faculty/abbott/econ351/351note04.pdf
-    double sigmasq;
+    double sigmasq; // MSE
+    int N; // No. of sample points in linear fit
+    mat mx;// arma format of x
+    vec vy;// arma format of y
+    vec vc;// arma format of coefficient
+    vec se;// arma format of standard error
+    vec t; // arma format of t stats
     public:
-        void compute_sigmasq(const int n, const std::vector<std::vector<double> >& x, const std::vector<double>& y, const double* coeff);
+        // convert x,y and coeff to arma format to prepare for stats calculation
+        void conv_form(const int n, const std::vector<std::vector<double> >& x, const std::vector<double>& y, const double* coeff);
+        // compute stats of the coeffs
+        void comp_stat();
+        // print out the stats
         void print();
 };
 
-using namespace arma;
-
-void OLS_stat::compute_sigmasq(const int n, const std::vector<std::vector<double> >& x, const std::vector<double>& y, const double* coeff){
-    //vec(y)-mat(x)*vec(coeff) 
-    vec vy = conv_to<vec>::from(y);
-    std::cout << "vector y is:" << std::endl;
-    vy.print();
-    mat mx(x.size(),n+1);
-    std::cout << "matrix x is of size " << x.size() << "x" << n+1 << std::endl;
-    for (int i=0;i<x.size();i++){
+void OLS_stat::conv_form(const int n, const std::vector<std::vector<double> >& x, const std::vector<double>& y, const double* coeff){
+    N = x.size();
+    // convert vectors and arrays to arma mat and vec 
+    vy = conv_to<vec>::from(y);
+    mx.set_size(N,n+1);
+    for (int i=0;i<N;i++){
         for (int j=0;j<n+1;j++){
             mx(i,j) = x[i][j];
-            std::cout << x[i][j] << " ";
         }
-        std::cout << std::endl;
     }
-    mx.print();
-    std::cout << "vector coeff is:" << std::endl;
-    vec vc(x[0].size());
+    vc.set_size(x[0].size());
     for (int i=0;i<n+1;i++){
         vc(i) = coeff[i];
     }
-    vc.print();
+}
+
+void OLS_stat::comp_stat(){
+    // sigmasq
     vy = vy-mx*vc;
     vy = vy%vy;
-    sigmasq = sum(vy)/(x.size()-n); 
+    sigmasq = sum(vy)/(N-mx.n_cols); 
+    // standard error
+    se.set_size(mx.n_cols);
+    se = sqrt(diagvec(sigmasq*(mx.t()*mx).i())); 
 }
 
 void OLS_stat::print(){
     std::cout << "Sigma sq=" << sigmasq << std::endl;
+    std::cout << "Standard error of coeffs are" << std::endl;
+    se.print();
 }
 
 double *OLS(const int N, const int n, const int m, std::vector<std::vector<double> >& x0, std::vector<std::vector<double> >& x, std::vector<std::vector<double> >& y){
@@ -86,7 +98,8 @@ double *OLS(const int N, const int n, const int m, std::vector<std::vector<doubl
     printdata_1D<double *>(newy,"Least squares solution",n+1);
 
     OLS_stat OLS_stat1;
-    OLS_stat1.compute_sigmasq(n, newx_copy, newy_copy, newy); 
+    OLS_stat1.conv_form(n, newx_copy, newy_copy, newy); 
+    OLS_stat1.comp_stat();
     OLS_stat1.print();
 
     /* Print residual sum of squares for the solution */
