@@ -78,8 +78,8 @@ std::vector<std::vector<double> > simplestat(const std::vector<std::vector<doubl
         stat stat_1D;
         std::vector<double> stat_1D_val = stat_1D.compute(data[i]);
 
-        std::cout << " DOF " << i << std::endl;
-        stat_1D.report();
+        //std::cout << " DOF " << i << std::endl;
+        //stat_1D.report();
 
         stat_2D.push_back(stat_1D_val); // store stat_1D into stat
     }

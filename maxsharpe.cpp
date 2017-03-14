@@ -58,17 +58,19 @@ int main(int argc, char *argv[])
     }
 
     // compute and output the statistics of inputs
-    std::cout << "x0" << std::endl;
+    //std::cout << "x0" << std::endl;
     std::vector<std::vector<double> > x0_col = reorgdata(x0,N_x0_row,N_x0_col);
     std::vector<std::vector<double> > x0_stat = simplestat(x0_col, 1);
-    std::cout << "x" << std::endl;
+    //std::cout << "x" << std::endl;
     std::vector<std::vector<double> > x_col = reorgdata(x,N_x_row,N_x_col);
     std::vector<std::vector<double> > x_stat = simplestat(x_col, n+1);
-    std::cout << "y" << std::endl;
+    //std::cout << "y" << std::endl;
     std::vector<std::vector<double> > y_col = reorgdata(y,N_y_row,N_y_col);
     std::vector<std::vector<double> > y_stat = simplestat(y_col, n+1);
     std::cout << std::endl;
 
+    // OLS
+    std::cout << "OLS" << std::endl;
     double *newy = OLS(N, n, m, x0, x, y);
 
 }

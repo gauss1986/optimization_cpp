@@ -81,15 +81,16 @@ void OLS_stat::comp_stat(){
 }
 
 void OLS_stat::print(){
-    std::cout << "Residual standard error = " << sqrt(sigmasq) << std::endl;
-    std::cout << "Standard error of coeffs are" << std::endl;
-    se.print();
-    std::cout << "t value of coeffs are" << std::endl;
-    t.print();
-    std::cout << "Pr(>|t|)" << std::endl;
-    q.print();
-    std::cout << "R2 = " << R2 << std::endl;
-    std::cout << "Adjusted R2 = " << R2_adj << std::endl;
+    std::cout << "Estimat   " << "Std. Error    " << "t value   " << "Pr(>|t|)" << std::endl;
+    mat results(mx.n_cols,4);
+    results.col(0) = vc;
+    results.col(1) = se;
+    results.col(2) = t;
+    results.col(3) = q;
+    results.print();
+    std::cout << "Residual standard error: " << sqrt(sigmasq) << " on " << N-mx.n_cols << " degrees of freedom"<< std::endl;
+    std::cout << "Multiple R-squared: " << R2 << std::endl;
+    std::cout << "Adjusted R-squared: " << R2_adj << std::endl;
 }
 
 double *OLS(const int N, const int n, const int m, std::vector<std::vector<double> >& x0, std::vector<std::vector<double> >& x, std::vector<std::vector<double> >& y){
@@ -121,17 +122,15 @@ double *OLS(const int N, const int n, const int m, std::vector<std::vector<doubl
         newx_copy.push_back(newx_copy_1D);
         //std::cout << "newx=" << newx[i][0] << "," << newx[i][1] << "," << newx[i][2] << ". newy=" << newy[i] << "." << std::endl;
     }
-    printdata_2D<double **>(newx,"First 10 rows in newx are:",10,3);
-    printdata_1D<double *>(newy,"First 10 entries in newy are:",10);
+    //printdata_2D<double **>(newx,"First 10 rows in newx are:",10,3);
+    //printdata_1D<double *>(newy,"First 10 entries in newy are:",10);
 
     // DGELS is general purpose and most efficient.
     // Use DGELSY to handle rank-deficient problems more realiably than DGELS.
     // Refer to http://www.netlib.org/lapack/lug/node71.html for details.
     LAPACKE_dgels(LAPACK_ROW_MAJOR, 'N', (n+1)*N, n+1, 1, &(newx[0][0]), n+1, &(newy[0]), 1);
 
-    /* Print least squares solution */
-    printdata_1D<double *>(newy,"Least squares solution",n+1);
-
+    // Compute and print the stats on OLS
     OLS_stat OLS_stat1;
     OLS_stat1.conv_form(n, newx_copy, newy_copy, newy); 
     OLS_stat1.comp_stat();
