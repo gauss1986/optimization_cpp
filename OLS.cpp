@@ -10,8 +10,10 @@
 #include <stdio.h>
 #include <OLS.h>
 #include "armadillo"
+#include <boost/math/distributions/students_t.hpp>
 
 using namespace arma;
+using namespace boost::math;
 
 class OLS_stat{
     // Compute OLS stats
@@ -26,6 +28,7 @@ class OLS_stat{
     vec vc;// arma format of coefficient
     vec se;// arma format of standard error
     vec t; // arma format of t stats
+    vec q; // arma format of probability that value with t stats is due to chance
     public:
         // convert x,y and coeff to arma format to prepare for stats calculation
         void conv_form(const int n, const std::vector<std::vector<double> >& x, const std::vector<double>& y, const double* coeff);
@@ -59,12 +62,24 @@ void OLS_stat::comp_stat(){
     // standard error
     se.set_size(mx.n_cols);
     se = sqrt(diagvec(sigmasq*(mx.t()*mx).i())); 
+    // t stats
+    t.set_size(mx.n_cols);
+    t = vc/se; 
+    students_t dist(N-1);
+    q.set_size(mx.n_cols);
+    for (int i=0;i<mx.n_cols;i++){
+        q(i) = 2*cdf(complement(dist, fabs(t(i))));
+    }
 }
 
 void OLS_stat::print(){
     std::cout << "Sigma sq=" << sigmasq << std::endl;
     std::cout << "Standard error of coeffs are" << std::endl;
     se.print();
+    std::cout << "t value of coeffs are" << std::endl;
+    t.print();
+    std::cout << "Pr(>|t|)" << std::endl;
+    q.print();
 }
 
 double *OLS(const int N, const int n, const int m, std::vector<std::vector<double> >& x0, std::vector<std::vector<double> >& x, std::vector<std::vector<double> >& y){
