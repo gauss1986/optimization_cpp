@@ -69,15 +69,25 @@ void OLS_stat::print(){
 
 double *OLS(const int N, const int n, const int m, std::vector<std::vector<double> >& x0, std::vector<std::vector<double> >& x, std::vector<std::vector<double> >& y){
     // construct newx, newy
-    double **newx = matrix(N,n+1);
-    double *newy = new double[N];
+    double **newx = matrix((n+1)*N,n+1);
+    double *newy = new double[(n+1)*N];
     std::vector<double> newy_copy;
     std::vector<std::vector<double> > newx_copy;
     for (int i=0;i<N;i++){
-        newx[i][0] = m;
-        newx[i][1] = x0[i][0]*m;
-        newx[i][2] = std::accumulate(x[i].begin(),x[i].end(),0.0);
-        newy[i] = std::accumulate(y[i].begin(),y[i].end(),0.0); 
+        newx[i][0] = 1;
+        newx[i+N][0] = 1;
+        newx[i+2*N][0] = 1;
+        newx[i][1] = x0[i][0];
+        newx[i+N][1] = x0[i][0];
+        newx[i+N*2][1] = x0[i][0];
+        newx[i][2] = x[i][0];
+        newx[i+N][2] = x[i][1];
+        newx[i+2*N][2] = x[i][2];
+        newy[i] = y[i][0];
+        newy[i+N] = y[i][1];
+        newy[i+N*2] = y[i][2];
+    }
+    for (int i=0;i<(n+1)*N;i++){
         newy_copy.push_back(newy[i]);
         std::vector<double> newx_copy_1D;
         newx_copy_1D.push_back(newx[i][0]);
@@ -92,7 +102,7 @@ double *OLS(const int N, const int n, const int m, std::vector<std::vector<doubl
     // DGELS is general purpose and most efficient.
     // Use DGELSY to handle rank-deficient problems more realiably than DGELS.
     // Refer to http://www.netlib.org/lapack/lug/node71.html for details.
-    LAPACKE_dgels(LAPACK_ROW_MAJOR, 'N', N, n+1, 1, &(newx[0][0]), n+1, &(newy[0]), 1);
+    LAPACKE_dgels(LAPACK_ROW_MAJOR, 'N', (n+1)*N, n+1, 1, &(newx[0][0]), n+1, &(newy[0]), 1);
 
     /* Print least squares solution */
     printdata_1D<double *>(newy,"Least squares solution",n+1);
