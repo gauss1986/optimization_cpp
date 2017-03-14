@@ -66,7 +66,7 @@ int main(int argc, char *argv[])
     std::vector<std::vector<double> > x_stat = simplestat(x_col, n+1);
     std::cout << "y" << std::endl;
     std::vector<std::vector<double> > y_col = reorgdata(y,N_y_row,N_y_col);
-    std::vector<std::vector<double> > y_stat = simplestat(y_col, 1);
+    std::vector<std::vector<double> > y_stat = simplestat(y_col, n+1);
     std::cout << std::endl;
 
     double *newy = OLS(N, n, m, x0, x, y);
