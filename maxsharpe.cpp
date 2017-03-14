@@ -73,6 +73,10 @@ int main(int argc, char *argv[])
     std::cout << "OLS" << std::endl;
     double *newy = OLS(N, n, m, x0, x, y);
 
+    // maxsharpe
+    std::cout << "Max sharpe" << std::endl;
+    
+
 }
 
 /* Auxiliary routine: printing a matrix */
