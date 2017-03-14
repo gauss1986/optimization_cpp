@@ -1,4 +1,5 @@
 #include <numeric>
+#include <math.h>
 #include <sstream>
 #include <vector>
 #include <iterator>
@@ -22,6 +23,8 @@ class OLS_stat{
     // Reference 3: http://www.netlib.org/lapack/lawnspdf/lawn193.pdf
     // Reference 4: http://qed.econ.queensu.ca/pub/faculty/abbott/econ351/351note04.pdf
     double sigmasq; // MSE
+    double R2; // R-square
+    double R2_adj; // adjusted R-square
     int N; // No. of sample points in linear fit
     mat mx;// arma format of x
     vec vy;// arma format of y
@@ -56,6 +59,7 @@ void OLS_stat::conv_form(const int n, const std::vector<std::vector<double> >& x
 
 void OLS_stat::comp_stat(){
     // sigmasq
+    vec vy_copy(vy);
     vy = vy-mx*vc;
     vy = vy%vy;
     sigmasq = sum(vy)/(N-mx.n_cols); 
@@ -70,16 +74,22 @@ void OLS_stat::comp_stat(){
     for (int i=0;i<mx.n_cols;i++){
         q(i) = 2*cdf(complement(dist, fabs(t(i))));
     }
+    // R2 stats
+    R2 = 1-sum(vy)/var(vy_copy)/(N-1);
+    // adjusted R2 stats
+    R2_adj = R2-(1-R2)*(mx.n_cols-1)/(N-mx.n_cols);
 }
 
 void OLS_stat::print(){
-    std::cout << "Sigma sq=" << sigmasq << std::endl;
+    std::cout << "Residual standard error = " << sqrt(sigmasq) << std::endl;
     std::cout << "Standard error of coeffs are" << std::endl;
     se.print();
     std::cout << "t value of coeffs are" << std::endl;
     t.print();
     std::cout << "Pr(>|t|)" << std::endl;
     q.print();
+    std::cout << "R2 = " << R2 << std::endl;
+    std::cout << "Adjusted R2 = " << R2_adj << std::endl;
 }
 
 double *OLS(const int N, const int n, const int m, std::vector<std::vector<double> >& x0, std::vector<std::vector<double> >& x, std::vector<std::vector<double> >& y){
