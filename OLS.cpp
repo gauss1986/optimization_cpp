@@ -51,10 +51,7 @@ void OLS_stat::conv_form(const int n, const std::vector<std::vector<double> >& x
             mx(i,j) = x[i][j];
         }
     }
-    vc.set_size(x[0].size());
-    for (int i=0;i<n+1;i++){
-        vc(i) = coeff[i];
-    }
+    vc = vec(coeff,n+1);
 }
 
 void OLS_stat::comp_stat(){

@@ -11,6 +11,7 @@
 #include <algorithm>
 #include <gsl/gsl_cblas.h>
 #include <OLS.h>
+#include <maxshp.h>
 
 // Author Lin Gao, lingao.gao@mail.utoronto.ca
 // Created March 5, 2017 for max sharpe problem at Bluewater Technologies Inc.
@@ -75,8 +76,7 @@ int main(int argc, char *argv[])
 
     // maxsharpe
     std::cout << "Max sharpe" << std::endl;
-    
-
+    maxshp(N, n, m, x0, x, y); 
 }
 
 /* Auxiliary routine: printing a matrix */

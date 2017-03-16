@@ -3,7 +3,7 @@ LDFLAGS =  -L${MKLROOT}/lib/intel64 -L${SCINET_BOOST_LIB} -L${SCINET_R_LIB}/R/li
 LDLIBS =  -lpthread -lboost_thread -lm
 CXX = icpc
 
-all: maxsharpe
+all: main
 
 txtIO.o: txtIO.cpp
 	$(CXX) -c $(CXXFLAGS) -I . -o txtIO.o txtIO.cpp
@@ -14,11 +14,14 @@ stat.o: stat.cpp
 OLS.o: OLS.cpp
 	$(CXX) -c $(CXXFLAGS) -I . -o OLS.o OLS.cpp
 
-maxsharpe.o: maxsharpe.cpp
-	$(CXX) -c $(CXXFLAGS) -I . -o maxsharpe.o maxsharpe.cpp
+maxshp.o: maxshp.cpp
+	$(CXX) -c $(CXXFLAGS) -I . -o maxshp.o maxshp.cpp
 
-maxsharpe: txtIO.o stat.o OLS.o maxsharpe.o
-	$(CXX) $(LDFLAGS) -o maxsharpe txtIO.o stat.o OLS.o maxsharpe.o $(LDLIBS)
+main.o: main.cpp
+	$(CXX) -c $(CXXFLAGS) -I . -o main.o main.cpp
+
+main: txtIO.o stat.o OLS.o maxshp.o main.o
+	$(CXX) $(LDFLAGS) -o main txtIO.o stat.o OLS.o maxshp.o main.o $(LDLIBS)
 
 test: test.cpp
 	$(CXX) $(CXXFLAGS) -o $@ $< $(LDFLAGS) 
@@ -33,4 +36,4 @@ testR: testR.o testR_main.o
 	$(CXX) $(LDFLAGS) -o testR testR.o testR_main.o $(LDLIBS)
 
 clean:
-	rm -f test maxsharpe maxsharpe.o txtIO.o stat.o testR.o testR_main.o OLS.o testR
+	rm -f test main main.o txtIO.o stat.o testR.o testR_main.o OLS.o maxshp.o testR
