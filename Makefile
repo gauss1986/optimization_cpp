@@ -17,11 +17,14 @@ OLS.o: OLS.cpp
 maxshp.o: maxshp.cpp
 	$(CXX) -c $(CXXFLAGS) -I . -o maxshp.o maxshp.cpp
 
+comp_shp.o: comp_shp.cpp
+	$(CXX) -c $(CXXFLAGS) -I . -o comp_shp.o comp_shp.cpp
+
 main.o: main.cpp
 	$(CXX) -c $(CXXFLAGS) -I . -o main.o main.cpp
 
-main: txtIO.o stat.o OLS.o maxshp.o main.o
-	$(CXX) $(LDFLAGS) -o main txtIO.o stat.o OLS.o maxshp.o main.o $(LDLIBS)
+main: txtIO.o stat.o OLS.o maxshp.o comp_shp.o main.o
+	$(CXX) $(LDFLAGS) -o main txtIO.o stat.o OLS.o maxshp.o comp_shp.o main.o $(LDLIBS)
 
 test: test.cpp
 	$(CXX) $(CXXFLAGS) -o $@ $< $(LDFLAGS) 
@@ -36,4 +39,4 @@ testR: testR.o testR_main.o
 	$(CXX) $(LDFLAGS) -o testR testR.o testR_main.o $(LDLIBS)
 
 clean:
-	rm -f test main main.o txtIO.o stat.o testR.o testR_main.o OLS.o maxshp.o testR
+	rm -f test main main.o txtIO.o stat.o testR.o testR_main.o OLS.o maxshp.o comp_shp.o testR

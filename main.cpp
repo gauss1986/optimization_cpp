@@ -12,6 +12,7 @@
 #include <gsl/gsl_cblas.h>
 #include <OLS.h>
 #include <maxshp.h>
+#include <comp_shp.h>
 #include "armadillo"
 
 // Author Lin Gao, lingao.gao@mail.utoronto.ca
@@ -89,14 +90,18 @@ int main(int argc, char *argv[])
     vec A_OLS = OLS(N, n, m, x0, x, y);
     std::cout << "OLS coeff:" << std::endl;
     A_OLS.print();
+    double shp_OLS;
+    vec shp_contract_OLS = comp_shp(shp_OLS, N, m, n, A_OLS, mx, my, vx0);
+    std::cout << "Shp:" << shp_OLS << std::endl; 
 
     // maxsharpe
     vec A_MAX = maxshp(N, n, m, mx, my, vx0); 
     std::cout << "Max sharpe coeff:" << std::endl;
     A_MAX.print();
+    double shp_MAX;
+    vec shp_contract_MAX = comp_shp(shp_MAX, N, m, n, A_MAX, mx, my, vx0);
+    std::cout << "Shp:" << shp_MAX << std::endl; 
 
-    // compute sharpe
-    //mat shp = comp_shp(A_OLS,A_MAX,x0,x,y);
 }
 
 /* Auxiliary routine: printing a matrix */

@@ -5,6 +5,7 @@
 #include <maxshp.h>
 
 using namespace arma;
+using namespace std;
 
 vec maxshp(const int N, const int n, const int m, mat& mx, mat& my, vec& vx0){
     // construct xy
@@ -12,14 +13,16 @@ vec maxshp(const int N, const int n, const int m, mat& mx, mat& my, vec& vx0){
     xy.col(0) = sum(my,1);
     xy.col(1) = vx0%xy.col(0);
     xy.col(2) = sum(mx%my,1);
-
-    //std::cout << "Cov(xy):" << std::endl;
+    
+    // print out some details if wanted
+    //cout << "Cov(xy):" << endl;
     //cov(xy).print();
-    //std::cout << "Cov(xy)^(-1):" << std::endl;
+    //cout << "Cov(xy)^(-1):" << endl;
     //(cov(xy).i()).print();
-    //std::cout << "mean(xy):" << std::endl;
+    //cout << "mean(xy):" << endl;
     //mean(xy).print();
 
+    // compute max sharpe setting
     mat A = cov(xy).i()*mean(xy).t();
 
     return conv_to<vec>::from(A);
