@@ -92,7 +92,9 @@ int main(int argc, char *argv[])
     A_OLS.print();
     double shp_OLS;
     vec shp_contract_OLS = comp_shp(shp_OLS, N, m, n, A_OLS, mx, my, vx0);
-    std::cout << "Shp:" << shp_OLS << std::endl; 
+    //std::cout << "Shp:" << shp_OLS << std::endl; 
+    std::cout << "Shp per contract is:" << std::endl;
+    shp_contract_OLS.print();
 
     // maxsharpe
     vec A_MAX = maxshp(N, n, m, mx, my, vx0); 
@@ -100,7 +102,9 @@ int main(int argc, char *argv[])
     A_MAX.print();
     double shp_MAX;
     vec shp_contract_MAX = comp_shp(shp_MAX, N, m, n, A_MAX, mx, my, vx0);
-    std::cout << "Shp:" << shp_MAX << std::endl; 
+    //std::cout << "Shp:" << shp_MAX << std::endl; 
+    std::cout << "Shp per contract is:" << std::endl;
+    shp_contract_MAX.print();
 
 }
 
