@@ -5,6 +5,9 @@ CXX = icpc
 
 all: main
 
+ticktock.o: ticktock.cc
+	$(CXX) -c $(CXXFLAGS) -I . -o ticktock.o ticktock.cc
+
 txtIO.o: txtIO.cpp
 	$(CXX) -c $(CXXFLAGS) -I . -o txtIO.o txtIO.cpp
 
@@ -23,8 +26,8 @@ comp_shp.o: comp_shp.cpp
 main.o: main.cpp
 	$(CXX) -c $(CXXFLAGS) -I . -o main.o main.cpp
 
-main: txtIO.o stat.o OLS.o maxshp.o comp_shp.o main.o
-	$(CXX) $(LDFLAGS) -o main txtIO.o stat.o OLS.o maxshp.o comp_shp.o main.o $(LDLIBS)
+main: ticktock.o txtIO.o stat.o OLS.o maxshp.o comp_shp.o main.o
+	$(CXX) $(LDFLAGS) -o main ticktock.o txtIO.o stat.o OLS.o maxshp.o comp_shp.o main.o $(LDLIBS)
 
 test: test.cpp
 	$(CXX) $(CXXFLAGS) -o $@ $< $(LDFLAGS) 
@@ -39,4 +42,4 @@ testR: testR.o testR_main.o
 	$(CXX) $(LDFLAGS) -o testR testR.o testR_main.o $(LDLIBS)
 
 clean:
-	rm -f test main main.o txtIO.o stat.o testR.o testR_main.o OLS.o maxshp.o comp_shp.o testR
+	rm -f test main ticktock.o main.o txtIO.o stat.o testR.o testR_main.o OLS.o maxshp.o comp_shp.o testR
