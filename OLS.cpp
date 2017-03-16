@@ -90,7 +90,7 @@ void OLS_stat::print(){
     std::cout << "Adjusted R-squared: " << R2_adj << std::endl;
 }
 
-double *OLS(const int N, const int n, const int m, std::vector<std::vector<double> >& x0, std::vector<std::vector<double> >& x, std::vector<std::vector<double> >& y){
+vec OLS(const int N, const int n, const int m, std::vector<std::vector<double> >& x0, std::vector<std::vector<double> >& x, std::vector<std::vector<double> >& y){
     // construct newx, newy
     double **newx = matrix(N,n+1);
     double *newy = new double[N];
@@ -132,7 +132,8 @@ double *OLS(const int N, const int n, const int m, std::vector<std::vector<doubl
 
     // free matrix and array
     free_matrix(newx);
-    return newy;
+    vec vcoeff = vec(newy,n+1);
+    return vcoeff;
 }
 
 double **matrix(int n,int m) {

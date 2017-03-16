@@ -12,6 +12,7 @@
 #include <gsl/gsl_cblas.h>
 #include <OLS.h>
 #include <maxshp.h>
+#include "armadillo"
 
 // Author Lin Gao, lingao.gao@mail.utoronto.ca
 // Created March 5, 2017 for max sharpe problem at Bluewater Technologies Inc.
@@ -24,6 +25,8 @@ extern void print_matrix( char* desc, MKL_INT m, MKL_INT n, double* a, MKL_INT l
 extern void print_vector_norm( char* desc, MKL_INT m, MKL_INT n, double* a, MKL_INT lda );
 double **matrix(int n,int m);
 void free_matrix(double **a);
+
+using namespace arma;
 
 int main(int argc, char *argv[])
 {
@@ -70,13 +73,30 @@ int main(int argc, char *argv[])
     std::vector<std::vector<double> > y_stat = simplestat(y_col, n+1);
     std::cout << std::endl;
 
+    // covert x0,x,y to arma format
+    mat mx(N,n+1);
+    mat my(N,n+1);
+    vec vx0(N);
+    for (int i=0;i<N;i++){
+        for (int j=0;j<n+1;j++){
+            mx(i,j) = x[i][j];
+            my(i,j) = y[i][j];
+        }
+        vx0(i) = x0[i][0];
+    }
+
     // OLS
-    std::cout << "OLS" << std::endl;
-    double *newy = OLS(N, n, m, x0, x, y);
+    vec A_OLS = OLS(N, n, m, x0, x, y);
+    std::cout << "OLS coeff:" << std::endl;
+    A_OLS.print();
 
     // maxsharpe
-    std::cout << "Max sharpe" << std::endl;
-    maxshp(N, n, m, x0, x, y); 
+    vec A_MAX = maxshp(N, n, m, mx, my, vx0); 
+    std::cout << "Max sharpe coeff:" << std::endl;
+    A_MAX.print();
+
+    // compute sharpe
+    //mat shp = comp_shp(A_OLS,A_MAX,x0,x,y);
 }
 
 /* Auxiliary routine: printing a matrix */
