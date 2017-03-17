@@ -103,10 +103,10 @@ int main(int argc, char *argv[])
         vector<vector<double> > y_sample;
         resample(x0_sample,x_sample,y_sample,x0,x,y);
         vec A_OLS = OLS(N, n, m, x0_sample, x_sample, y_sample);
-        mA_OLS.row(i) = A_OLS;
+        mA_OLS.row(i) = A_OLS.t();
         double shp_OLS;
         vec shp_contract_OLS = comp_shp(shp_OLS, N, m, n, A_OLS, mx, my, vx0);
-        mshp_contract_OLS.row(i) = shp_contract_OLS;
+        mshp_contract_OLS.row(i) = shp_contract_OLS.t();
         vshp(i) = shp_OLS;
     }
     //cout << "Shp:" << shp_OLS <<  endl; 

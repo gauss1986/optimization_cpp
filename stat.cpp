@@ -101,7 +101,7 @@ void resample(vector<vector<double> >& x0_sample, vector<vector<double> >& x_sam
     sample.randu();
     sample = sample * N;
     vec sample_processed = arma::trunc(sample);
-    sample_processed.print();
+    //sample_processed.print();
     
     for (int i=0;i<N;i++){
         vector<double> x0_temp;
