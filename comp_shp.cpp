@@ -20,7 +20,7 @@ vec comp_shp(double& shp, const int N, const int m, const int n, vec A, mat& mx,
         shp_contract(i) = mean(pnl_contract)/stddev(pnl_contract);
     }
     shp = mean(pnl)/stddev(pnl);
-    std::cout << "Shp:" << shp << std::endl; 
+    //std::cout << "Shp:" << shp << std::endl; 
 
     return shp_contract;
 }

@@ -98,6 +98,7 @@ int main(int argc, char *argv[])
     // bootstrapping
     T.tick();
     for (int i=0;i<N_bs;i++){ 
+        cout << double(i)/N_bs*100 << "%" << endl;
         vector<vector<double> > x0_sample;
         vector<vector<double> > x_sample;
         vector<vector<double> > y_sample;
@@ -118,6 +119,8 @@ int main(int argc, char *argv[])
     for (int i=0;i<n+1;i++){
         tstat_A(i) = mean(mA_OLS.col(i))/stddev(mA_OLS.col(i));
     }
+    cout << "Mean of the OLS parameters are:" << endl;
+    mean(mA_OLS).print();
     cout << "T stats for the OLS parameters are:" << endl;
     tstat_A.print();
 
