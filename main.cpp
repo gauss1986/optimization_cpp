@@ -94,48 +94,55 @@ int main(int argc, char *argv[])
     TickTock T;
     mat mA_OLS(N_bs,n+1);
     mat mshp_contract_OLS(N_bs,m);
-    vec vshp(N_bs);
+    vec vshp_OLS(N_bs);
+    mat mA_MAX(N_bs,n+1);
+    mat mshp_contract_MAX(N_bs,m);
+    vec vshp_MAX(N_bs);
     // bootstrapping
     T.tick();
     for (int i=0;i<N_bs;i++){ 
         cout << double(i)/N_bs*100 << "%" << endl;
+        // resampling
         vector<vector<double> > x0_sample;
         vector<vector<double> > x_sample;
         vector<vector<double> > y_sample;
-        resample(x0_sample,x_sample,y_sample,x0,x,y);
+        vec vx0_sample(N);
+        mat mx_sample(N,n+1);
+        mat my_sample(N,n+1);
+        vec sample(N); 
+        sample = resample_vec(x0_sample,x_sample,y_sample,x0,x,y);
+        resample_arma(sample,vx0_sample,mx_sample,my_sample,vx0,mx,my);
+        // OLS
         vec A_OLS = OLS(N, n, m, x0_sample, x_sample, y_sample);
         mA_OLS.row(i) = A_OLS.t();
         double shp_OLS;
         vec shp_contract_OLS = comp_shp(shp_OLS, N, m, n, A_OLS, mx, my, vx0);
         mshp_contract_OLS.row(i) = shp_contract_OLS.t();
-        vshp(i) = shp_OLS;
+        vshp_OLS(i) = shp_OLS;
+        // maxsharpe
+        vec A_MAX = maxshp(N, n, m, mx_sample, my_sample, vx0_sample);
+        mA_MAX.row(i) = A_MAX.t(); 
+        double shp_MAX;
+        vec shp_contract_MAX = comp_shp(shp_MAX, N, m, n, A_MAX, mx, my, vx0);
+        mshp_contract_MAX.row(i) = shp_contract_MAX.t();
+        vshp_MAX(i) = shp_MAX;
     }
-    //cout << "Shp:" << shp_OLS <<  endl; 
-    //cout << "Shp per contract is:" <<  endl;
-    //shp_contract_OLS.print();
-    //cout << endl;
     T.tock("Bootstrapping costs ");
-    vec tstat_A(n+1);
+    vec tstat_OLS(n+1);
+    vec tstat_MAX(n+1);
     for (int i=0;i<n+1;i++){
-        tstat_A(i) = mean(mA_OLS.col(i))/stddev(mA_OLS.col(i));
+        tstat_OLS(i) = mean(mA_OLS.col(i))/stddev(mA_OLS.col(i));
+        tstat_MAX(i) = mean(mA_MAX.col(i))/stddev(mA_MAX.col(i));
     }
     cout << "Mean of the OLS parameters are:" << endl;
     mean(mA_OLS).print();
     cout << "T stats for the OLS parameters are:" << endl;
-    tstat_A.print();
+    tstat_OLS.print();
+    cout << "Mean of the max sharpe parameters are:" << endl;
+    mean(mA_MAX).print();
+    cout << "T stats for the max sharpe parameters are:" << endl;
+    tstat_MAX.print();
 
-    // maxsharpe
-    cout << "Max sharpe:" << endl;    
-    T.tick();
-    vec A_MAX = maxshp(N, n, m, mx, my, vx0); 
-    T.tock();
-    cout << "coeff:" <<  endl;
-    A_MAX.print();
-    double shp_MAX;
-    vec shp_contract_MAX = comp_shp(shp_MAX, N, m, n, A_MAX, mx, my, vx0);
-    //cout << "Shp:" << shp_MAX <<  endl; 
-    cout << "Shp per contract is:" <<  endl;
-    shp_contract_MAX.print();
 
 }
 
