@@ -85,7 +85,7 @@ void OLS_stat::print(){
     results.col(1) = se;
     results.col(2) = t;
     results.col(3) = q;
-    results.print();
+    //results.print();
     std::cout << "Residual standard error: " << sqrt(sigmasq) << " on " << N-mx.n_cols << " degrees of freedom"<< std::endl;
     std::cout << "Multiple R-squared: " << R2 << std::endl;
     std::cout << "Adjusted R-squared: " << R2_adj << std::endl;

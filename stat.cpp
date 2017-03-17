@@ -14,30 +14,34 @@
 #include <boost/accumulators/statistics/skewness.hpp>
 #include <boost/accumulators/statistics/kurtosis.hpp>
 #include <stat.h>
+#include "armadillo"
+
+using namespace arma;
+using namespace std;
+using namespace boost::accumulators;
 
 class stat{
     double min, max, mean, median, std, skew, kurt;
     public:
-        std::vector<double>  compute(const std::vector<double> &data); // compute the statistics
+        vector<double>  compute(const vector<double> &data); // compute the statistics
         void report(); // report the statistics
 };
 
-std::vector<double> stat::compute(const std::vector<double> &data){
+vector<double> stat::compute(const vector<double> &data){
     // use boost.minmax to reduce cost associated with min and max
-    min = *std::min_element(data.begin(),data.end());
-    max = *std::max_element(data.begin(),data.end());
+    min = *min_element(data.begin(),data.end());
+    max = *max_element(data.begin(),data.end());
 
     // using boost accumulators library
-    using namespace boost::accumulators;
     accumulator_set<double, features<tag::mean, tag::variance(lazy), tag::median, tag::skewness, tag::kurtosis> > acc;
-    std::for_each(data.begin(), data.end(), boost::bind<void>(boost::ref(acc),boost::lambda::_1)); // put data on each dim into acc
+    for_each(data.begin(), data.end(), boost::bind<void>(boost::ref(acc),boost::lambda::_1)); // put data on each dim into acc
     mean = boost::accumulators::mean(acc); 
-    median = boost::accumulators::median(acc); 
+    median =  boost::accumulators::median(acc); 
     std = sqrt(boost::accumulators::variance(acc));
     skew = boost::accumulators::skewness(acc);
     kurt = boost::accumulators::kurtosis(acc);
         
-    std::vector<double> stat_1D_val;
+    vector<double> stat_1D_val;
     stat_1D_val.push_back(min);
     stat_1D_val.push_back(max);
     stat_1D_val.push_back(mean);
@@ -51,38 +55,65 @@ std::vector<double> stat::compute(const std::vector<double> &data){
 
 void stat::report (){
     // report statistics
-    std::cout << "Statistics:" << std::endl;
+    cout << "Statistics:" << endl;
 
     // modify report details here
-    std::cout << " Min      ";
-    std::cout << min << std::endl;
-    std::cout << " Max      ";
-    std::cout << max << std::endl;
-    std::cout << " Mean     ";
-    std::cout << mean << std::endl;
-    std::cout << " Median   ";
-    std::cout << median << std::endl;
-    std::cout << " Std      ";
-    std::cout << std << std::endl;
-    std::cout << " Skewness ";
-    std::cout << skew << std::endl;
-    std::cout << " Kurtosis ";
-    std::cout << kurt << std::endl;
-    std::cout << std::endl;
+    cout << " Min      ";
+    cout << min << endl;
+    cout << " Max      ";
+    cout << max << endl;
+    cout << " Mean     ";
+    cout << mean << endl;
+    cout << " Median   ";
+    cout << median << endl;
+    cout << " Std      ";
+    cout << std << endl;
+    cout << " Skewness ";
+    cout << skew << endl;
+    cout << " Kurtosis ";
+    cout << kurt << endl;
+    cout << endl;
 }
 
-std::vector<std::vector<double> > simplestat(const std::vector<std::vector<double> >& data, int N){
+vector<vector<double> > simplestat(const vector<vector<double> >& data, int N){
     // compute and output mean,std,skew and kurt on each dim
-    std::vector<std::vector<double> > stat_2D;
+    vector<vector<double> > stat_2D;
     for (int i=0;i<N;i++){
         stat stat_1D;
-        std::vector<double> stat_1D_val = stat_1D.compute(data[i]);
+        vector<double> stat_1D_val = stat_1D.compute(data[i]);
 
-        //std::cout << " DOF " << i << std::endl;
+        //cout << " DOF " << i << endl;
         //stat_1D.report();
 
         stat_2D.push_back(stat_1D_val); // store stat_1D into stat
     }
 
     return stat_2D;
+}
+
+
+void resample(vector<vector<double> >& x0_sample, vector<vector<double> >& x_sample, vector<vector<double> >& y_sample, const vector<vector<double> >& x0, const vector<vector<double> >& x, const vector<vector<double> >& y){
+    // sample x0,x and y
+    arma_rng::set_seed_random(); 
+    int N = x0.size();
+    int n = x[0].size();
+    vec sample(N); 
+    sample.randu();
+    sample = sample * N;
+    vec sample_processed = arma::trunc(sample);
+    sample_processed.print();
+    
+    for (int i=0;i<N;i++){
+        vector<double> x0_temp;
+        vector<double> x_temp;
+        vector<double> y_temp;
+        for (int j=0;j<n;j++){
+            x_temp.push_back(x[sample_processed(i)][j]);
+            y_temp.push_back(y[sample_processed(i)][j]);
+        }
+        x0_temp.push_back(x0[sample_processed(i)][0]);
+        x_sample.push_back(x_temp);
+        y_sample.push_back(y_temp);
+        x0_sample.push_back(x0_temp);
+    } 
 }

@@ -37,6 +37,7 @@ int main(int argc, char *argv[])
     int N = 0; // No. of records
     int n = 2; // No. of vars. in linear model
     int m = 0; // No. of contracts    
+    int N_bs = 500; // Bootstrap No. 
     double **newx;
     int *jpvt;
 
@@ -91,15 +92,34 @@ int main(int argc, char *argv[])
     // OLS
     cout << "OLS" << endl;    
     TickTock T;
+    mat mA_OLS(N_bs,n+1);
+    mat mshp_contract_OLS(N_bs,m);
+    vec vshp(N_bs);
+    // bootstrapping
     T.tick();
-    vec A_OLS = OLS(N, n, m, x0, x, y);
-    T.tock();
-    double shp_OLS;
-    vec shp_contract_OLS = comp_shp(shp_OLS, N, m, n, A_OLS, mx, my, vx0);
+    for (int i=0;i<N_bs;i++){ 
+        vector<vector<double> > x0_sample;
+        vector<vector<double> > x_sample;
+        vector<vector<double> > y_sample;
+        resample(x0_sample,x_sample,y_sample,x0,x,y);
+        vec A_OLS = OLS(N, n, m, x0_sample, x_sample, y_sample);
+        mA_OLS.row(i) = A_OLS;
+        double shp_OLS;
+        vec shp_contract_OLS = comp_shp(shp_OLS, N, m, n, A_OLS, mx, my, vx0);
+        mshp_contract_OLS.row(i) = shp_contract_OLS;
+        vshp(i) = shp_OLS;
+    }
     //cout << "Shp:" << shp_OLS <<  endl; 
-    cout << "Shp per contract is:" <<  endl;
-    shp_contract_OLS.print();
-    cout << endl;
+    //cout << "Shp per contract is:" <<  endl;
+    //shp_contract_OLS.print();
+    //cout << endl;
+    T.tock("Bootstrapping costs ");
+    vec tstat_A(n+1);
+    for (int i=0;i<n+1;i++){
+        tstat_A(i) = mean(mA_OLS.col(i))/stddev(mA_OLS.col(i));
+    }
+    cout << "T stats for the OLS parameters are:" << endl;
+    tstat_A.print();
 
     // maxsharpe
     cout << "Max sharpe:" << endl;    
