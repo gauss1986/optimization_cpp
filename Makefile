@@ -1,7 +1,7 @@
-CXXFLAGS =  -O1 -I/opt/intel/composer_xe_2013.3.171/mkl/include -I${SCINET_BOOST_INC} -I${SCINET_ARMADILLO_INC}
-LDFLAGS =  -L${MKLROOT}/lib/intel64 -L${SCINET_BOOST_LIB} -L${SCINET_ARMADILLO_LIB} -larmadillo -llzma -lmkl_intel_lp64 -lmkl_sequential -lmkl_core -lpthread -lgsl -lgslcblas 
-LDLIBS =  -lpthread -lboost_thread -lm
-CXX = icpc
+CXXFLAGS =  -O1 -I/usr/include/boost/ -I/usr/local/include -I/opt/intel/mkl/include  
+LDFLAGS =  -L/usr/local/lib64/ -L/usr/lib64/ -L/opt/intel/mkl/lib/intel64 -L/usr/lib64/boost 
+LDLIBS =  -lpthread -lboost_thread-mt -lm -lmkl_rt -llzma -lpthread -lgsl -lgslcblas -lmkl_intel_lp64 -lmkl_sequential -lmkl_core -larmadillo
+CXX = gcc
 
 all: main
 

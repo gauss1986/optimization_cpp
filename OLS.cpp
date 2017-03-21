@@ -14,8 +14,11 @@
 #include "armadillo"
 #include <boost/math/distributions/students_t.hpp>
 
+#define MKL_INT int
+
 using namespace arma;
 using namespace boost::math;
+
 
 class OLS_stat{
     // Compute OLS stats

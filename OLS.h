@@ -3,6 +3,8 @@
 #include <stdio.h>
 #include "armadillo"
 
+#define MKL_INT int
+
 void print_vector_norm( char* desc, MKL_INT m, MKL_INT n, double* a, MKL_INT lda );
 void free_matrix(double **a);
 double **matrix(int n,int m);
