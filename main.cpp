@@ -109,6 +109,8 @@ int main(int argc, char *argv[])
         vec shp_contract_OLS = comp_shp(shp_OLS, N, m, n, A_OLS, mx, my, vx0);
         mshp_contract_OLS.row(i) = shp_contract_OLS.t();
         vshp(i) = shp_OLS;
+    	cout << "Shp:" << shp_OLS <<  endl; 
+	
     }
     //cout << "Shp:" << shp_OLS <<  endl; 
     //cout << "Shp per contract is:" <<  endl;
@@ -123,6 +125,11 @@ int main(int argc, char *argv[])
     mean(mA_OLS).print();
     cout << "T stats for the OLS parameters are:" << endl;
     tstat_A.print();
+    double shp_OLS_mean;
+    vec shp_contract_OLS_mean = comp_shp(shp_OLS_mean, N, m, n, mean(mA_OLS).t(), mx, my, vx0);
+    cout << "Sharpe ratio is:" << shp_OLS_mean << endl;
+    cout << "Shp per contract is:" <<  endl;
+    shp_contract_OLS_mean.print();
 
     // maxsharpe
     cout << "Max sharpe:" << endl;    
@@ -133,7 +140,7 @@ int main(int argc, char *argv[])
     A_MAX.print();
     double shp_MAX;
     vec shp_contract_MAX = comp_shp(shp_MAX, N, m, n, A_MAX, mx, my, vx0);
-    //cout << "Shp:" << shp_MAX <<  endl; 
+    cout << "Shp:" << shp_MAX <<  endl; 
     cout << "Shp per contract is:" <<  endl;
     shp_contract_MAX.print();
 
