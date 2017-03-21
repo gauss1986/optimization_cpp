@@ -1,5 +1,5 @@
-CXXFLAGS =  -O1 -I/opt/intel/composer_xe_2013.3.171/mkl/include -I${SCINET_BOOST_INC} -I${SCINET_ARMADILLO_INC} -I${SCINET_R_BASE}/lib64/R/include/
-LDFLAGS =  -L${MKLROOT}/lib/intel64 -L${SCINET_BOOST_LIB} -L${SCINET_R_LIB}/R/lib -L${SCINET_PCRE_LIB} -L${SCINET_XZ_LIB} -L${SCINET_ARMADILLO_LIB} -larmadillo -lR -llzma -lmkl_intel_lp64 -lmkl_sequential -lmkl_core -lpthread -lgsl -lgslcblas -lpcre 
+CXXFLAGS =  -O1 -I/opt/intel/composer_xe_2013.3.171/mkl/include -I${SCINET_BOOST_INC} -I${SCINET_ARMADILLO_INC}
+LDFLAGS =  -L${MKLROOT}/lib/intel64 -L${SCINET_BOOST_LIB} -L${SCINET_ARMADILLO_LIB} -larmadillo -llzma -lmkl_intel_lp64 -lmkl_sequential -lmkl_core -lpthread -lgsl -lgslcblas 
 LDLIBS =  -lpthread -lboost_thread -lm
 CXX = icpc
 
@@ -32,14 +32,5 @@ main: ticktock.o txtIO.o stat.o OLS.o maxshp.o comp_shp.o main.o
 test: test.cpp
 	$(CXX) $(CXXFLAGS) -o $@ $< $(LDFLAGS) 
 
-testR_main.o: testR_main.cpp
-	$(CXX) -c $(CXXFLAGS) -I . -o testR_main.o testR_main.cpp
-
-testR.o: testR.cpp
-	$(CXX) -c $(CXXFLAGS) -I . -o testR.o testR.cpp
-
-testR: testR.o testR_main.o
-	$(CXX) $(LDFLAGS) -o testR testR.o testR_main.o $(LDLIBS)
-
 clean:
-	rm -f test main ticktock.o main.o txtIO.o stat.o testR.o testR_main.o OLS.o maxshp.o comp_shp.o testR
+	rm -f test main ticktock.o main.o txtIO.o stat.o OLS.o maxshp.o comp_shp.o
