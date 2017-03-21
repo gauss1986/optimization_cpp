@@ -109,8 +109,6 @@ int main(int argc, char *argv[])
         vec shp_contract_OLS = comp_shp(shp_OLS, N, m, n, A_OLS, mx, my, vx0);
         mshp_contract_OLS.row(i) = shp_contract_OLS.t();
         vshp(i) = shp_OLS;
-    	cout << "Shp:" << shp_OLS <<  endl; 
-	
     }
     //cout << "Shp:" << shp_OLS <<  endl; 
     //cout << "Shp per contract is:" <<  endl;
@@ -121,10 +119,18 @@ int main(int argc, char *argv[])
     for (int i=0;i<n+1;i++){
         tstat_A(i) = mean(mA_OLS.col(i))/stddev(mA_OLS.col(i));
     }
-    cout << "Mean of the OLS parameters are:" << endl;
-    mean(mA_OLS).print();
-    cout << "T stats for the OLS parameters are:" << endl;
-    tstat_A.print();
+    cout << "Bootstraping statistics:" << endl;
+    cout << "Mean	" << "Std.	" << "t  " << endl;
+    mat OLS_results(n+1,3);
+    OLS_results.col(0) = mean(mA_OLS).t();
+    OLS_results.col(1) = stdev(mA_OLS).t();
+    OLS_results.col(2) = tstat_A;
+    cout << "Statistics on the original set:" << endl;
+    OLS_stat1.conv_form(n, newx_copy, newy_copy, newy); 
+    OLS_stat1.comp_stat();
+    OLS_stat1.print();
+
+    cout << "Results using mean of the parameters:" << endl;
     double shp_OLS_mean;
     vec shp_contract_OLS_mean = comp_shp(shp_OLS_mean, N, m, n, mean(mA_OLS).t(), mx, my, vx0);
     cout << "Sharpe ratio is:" << shp_OLS_mean << endl;
