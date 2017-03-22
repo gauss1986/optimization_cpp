@@ -9,7 +9,6 @@
 #include <txtIO.h>
 #include <stat.h>
 #include <algorithm>
-#include <gsl/gsl_cblas.h>
 #include <OLS.h>
 #include <maxshp.h>
 #include <comp_shp.h>
