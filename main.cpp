@@ -88,8 +88,6 @@ int main(int argc, char *argv[])
         vx0(i) = x0[i][0];
     }
 
-    // OLS
-    cout << "OLS" << endl;    
     TickTock T;
     mat mA_OLS(N_bs,n+1);
     mat mshp_contract_OLS(N_bs,m);
@@ -97,10 +95,14 @@ int main(int argc, char *argv[])
     mat mA_MAX(N_bs,n+1);
     mat mshp_contract_MAX(N_bs,m);
     vec vshp_MAX(N_bs);
+    mat mA_MAX_norm(N_bs,n+1);
+    mat mshp_contract_MAX_norm(N_bs,m);
+    vec vshp_MAX_norm(N_bs);
+    cout << "Bootstrapping size " << N_bs << endl;
     // bootstrapping
     T.tick();
     for (int i=0;i<N_bs;i++){ 
-        cout << double(i)/N_bs*100 << "%" << endl;
+	if ((i%(N_bs/100)==0)) cout << double(i)/N_bs*100 << "%" << endl;
         // resampling
         vector<vector<double> > x0_sample;
         vector<vector<double> > x_sample;
@@ -125,13 +127,28 @@ int main(int argc, char *argv[])
         vec shp_contract_MAX = comp_shp(shp_MAX, N, m, n, A_MAX, mx, my, vx0);
         mshp_contract_MAX.row(i) = shp_contract_MAX.t();
         vshp_MAX(i) = shp_MAX;
+	// normalize maxsharpe coeffs w.r.t. OLS coeffs.
+	mat A(m,2,fill::ones);
+	A.col(1) = A_MAX;
+	vec c = solve(A,A_OLS);
+	vec A_MAX_norm = A*c; 
+        mA_MAX_norm.row(i) = A_MAX_norm.t(); 
+        double shp_MAX_norm;
+        vec shp_contract_MAX_norm = comp_shp(shp_MAX_norm, N, m, n, A_MAX, mx, my, vx0);
+        mshp_contract_MAX_norm.row(i) = shp_contract_MAX_norm.t();
+        vshp_MAX_norm(i) = shp_MAX_norm;
     }
     T.tock("Bootstrapping costs ");
+    cout << endl;
+
+    // compute statistics
     vec tstat_OLS(n+1);
     vec tstat_MAX(n+1);
+    vec tstat_MAX_norm(n+1);
     for (int i=0;i<n+1;i++){
         tstat_OLS(i) = mean(mA_OLS.col(i))/stddev(mA_OLS.col(i));
         tstat_MAX(i) = mean(mA_MAX.col(i))/stddev(mA_MAX.col(i));
+        tstat_MAX_norm(i) = mean(mA_MAX_norm.col(i))/stddev(mA_MAX_norm.col(i));
     }
     cout << "Mean of the OLS parameters are:" << endl;
     mean(mA_OLS).print();
@@ -141,8 +158,10 @@ int main(int argc, char *argv[])
     mean(mA_MAX).print();
     cout << "T stats for the max sharpe parameters are:" << endl;
     tstat_MAX.print();
-
-
+    cout << "Mean of the max sharpe normalized parameters are:" << endl;
+    mean(mA_MAX_norm).print();
+    cout << "T stats for the max sharpe normalized parameters are:" << endl;
+    tstat_MAX_norm.print();
 }
 
 /* Auxiliary routine: printing a matrix */

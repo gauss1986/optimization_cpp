@@ -16,10 +16,10 @@ vec maxshp(const int N, const int n, const int m, mat& mx, mat& my, vec& vx0){
     xy.col(2) = sum(mx%my,1);
     
     // compute max sharpe setting
-    TickTock t;
-    t.tick();
+    //TickTock t;
+    //t.tick();
     mat A = cov(xy).i()*mean(xy).t();
-    t.tock("Core of maxshp costs:");
+    //t.tock("Core of maxshp costs:");
 
     // compute stats
 

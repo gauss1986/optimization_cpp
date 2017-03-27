@@ -118,10 +118,10 @@ vec OLS(const int N, const int n, const int m, std::vector<std::vector<double> >
     // DGELS is general purpose and most efficient.
     // Use DGELSY to handle rank-deficient problems more realiably than DGELS.
     // Refer to http://www.netlib.org/lapack/lug/node71.html for details.
-    TickTock T;
-    T.tick();
+    //TickTock T;
+    //T.tick();
     LAPACKE_dgels(LAPACK_ROW_MAJOR, 'N', N, n+1, 1, &(newx[0][0]), n+1, &(newy[0]), 1);
-    T.tock("DGELS costs ");
+    //T.tock("DGELS costs ");
 
     // Compute and print the stats on OLS
     OLS_stat OLS_stat1;
