@@ -67,13 +67,13 @@ int main(int argc, char *argv[])
     // compute and output the statistics of inputs
     //cout << "x0" <<  endl;
     vector< vector<double> > x0_col = reorgdata(x0,N_x0_row,N_x0_col);
-    vector< vector<double> > x0_stat = simplestat(x0_col, 1);
+    vector< vector<double> > x0_stat = simple2Dstat(x0_col, 1);
     //cout << "x" <<  endl;
     vector< vector<double> > x_col = reorgdata(x,N_x_row,N_x_col);
-    vector< vector<double> > x_stat = simplestat(x_col, n+1);
+    vector< vector<double> > x_stat = simple2Dstat(x_col, n+1);
     //cout << "y" <<  endl;
     vector< vector<double> > y_col = reorgdata(y,N_y_row,N_y_col);
-    vector< vector<double> > y_stat = simplestat(y_col, n+1);
+    vector< vector<double> > y_stat = simple2Dstat(y_col, n+1);
     cout <<  endl;
 
     // covert x0,x,y to arma format

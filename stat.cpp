@@ -20,14 +20,30 @@ using namespace arma;
 using namespace std;
 using namespace boost::accumulators;
 
-class stat{
+class simplestat{
     double min, max, mean, median, std, skew, kurt;
     public:
         vector<double>  compute(const vector<double> &data); // compute the statistics
         void report(); // report the statistics
 };
 
-vector<double> stat::compute(const vector<double> &data){
+class linearstat{
+    //int N; // No. of sample points
+    //mat mx;// arma format of x
+    //vec vy;// arma format of y
+    //vec vc;// arma format of coefficient
+    double sigmasq; // MSE
+    double R2; // R-square
+    double R2_adj; // adjusted R-square
+    vec se;// arma format of standard error
+    vec t; // arma format of t stats
+    vec q; // arma format of probability that value with t stats is due to chance
+    public:
+	void compute(mx,vy,vc,N);
+        void print();
+};
+
+vector<double> simplestat::compute(const vector<double> &data){
     // use boost.minmax to reduce cost associated with min and max
     min = *min_element(data.begin(),data.end());
     max = *max_element(data.begin(),data.end());
@@ -53,7 +69,7 @@ vector<double> stat::compute(const vector<double> &data){
     return stat_1D_val;
 }
 
-void stat::report (){
+void simplestat::report (){
     // report statistics
     cout << "Statistics:" << endl;
 
@@ -75,7 +91,7 @@ void stat::report (){
     cout << endl;
 }
 
-vector<vector<double> > simplestat(const vector<vector<double> >& data, int N){
+vector<vector<double> > simple2Dstat(const vector<vector<double> >& data, int N){
     // compute and output mean,std,skew and kurt on each dim
     vector<vector<double> > stat_2D;
     for (int i=0;i<N;i++){
@@ -127,3 +143,41 @@ void resample_arma(vec& sample, vec& vx0_sample, mat& mx_sample, mat& my_sample,
         my_sample.row(i) = my.row(sample(i));
     }
 }
+
+void linearstat::compute(mx,vy,vc,N){
+    // sigmasq
+    vec vy_copy(vy);
+    vy = vy-mx*vc;
+    vy = vy%vy;
+    sigmasq = sum(vy)/(N-mx.n_cols); 
+    // standard error
+    se.set_size(mx.n_cols);
+    //se = sqrt(diagvec(sigmasq*(mx.t()*mx).i())); 
+    se =  
+    // t stats
+    t.set_size(mx.n_cols);
+    t = vc/se; 
+    students_t dist(N-1);
+    q.set_size(mx.n_cols);
+    for (int i=0;i<mx.n_cols;i++){
+        q(i) = 2*cdf(complement(dist, fabs(t(i))));
+    }
+    // R2 stats
+    R2 = 1-sum(vy)/var(vy_copy)/(N-1);
+    // adjusted R2 stats
+    R2_adj = R2-(1-R2)*(mx.n_cols-1)/(N-mx.n_cols);
+}
+
+void linearstat::print(){
+    std::cout << "Estimat   " << "Std. Error    " << "t value   " << "Pr(>|t|)" << std::endl;
+    mat results(mx.n_cols,4);
+    results.col(0) = vc;
+    results.col(1) = se;
+    results.col(2) = t;
+    results.col(3) = q;
+    results.print();
+    std::cout << "Residual standard error: " << sqrt(sigmasq) << " on " << N-mx.n_cols << " degrees of freedom"<< std::endl;
+    std::cout << "Multiple R-squared: " << R2 << std::endl;
+    std::cout << "Adjusted R-squared: " << R2_adj << std::endl;
+}
+

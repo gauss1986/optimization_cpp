@@ -55,42 +55,6 @@ void OLS_stat::conv_form(const int n, const std::vector<std::vector<double> >& x
     vc = vec(coeff,n+1);
 }
 
-void OLS_stat::comp_stat(){
-    // sigmasq
-    vec vy_copy(vy);
-    vy = vy-mx*vc;
-    vy = vy%vy;
-    sigmasq = sum(vy)/(N-mx.n_cols); 
-    // standard error
-    se.set_size(mx.n_cols);
-    se = sqrt(diagvec(sigmasq*(mx.t()*mx).i())); 
-    // t stats
-    t.set_size(mx.n_cols);
-    t = vc/se; 
-    students_t dist(N-1);
-    q.set_size(mx.n_cols);
-    for (int i=0;i<mx.n_cols;i++){
-        q(i) = 2*cdf(complement(dist, fabs(t(i))));
-    }
-    // R2 stats
-    R2 = 1-sum(vy)/var(vy_copy)/(N-1);
-    // adjusted R2 stats
-    R2_adj = R2-(1-R2)*(mx.n_cols-1)/(N-mx.n_cols);
-}
-
-void OLS_stat::print(){
-    std::cout << "Estimat   " << "Std. Error    " << "t value   " << "Pr(>|t|)" << std::endl;
-    mat results(mx.n_cols,4);
-    results.col(0) = vc;
-    results.col(1) = se;
-    results.col(2) = t;
-    results.col(3) = q;
-    results.print();
-    std::cout << "Residual standard error: " << sqrt(sigmasq) << " on " << N-mx.n_cols << " degrees of freedom"<< std::endl;
-    std::cout << "Multiple R-squared: " << R2 << std::endl;
-    std::cout << "Adjusted R-squared: " << R2_adj << std::endl;
-}
-
 vec OLS(const int N, const int n, const int m, std::vector<std::vector<double> >& x0, std::vector<std::vector<double> >& x, std::vector<std::vector<double> >& y){
     // construct newx, newy
     double **newx = matrix(N,n+1);
