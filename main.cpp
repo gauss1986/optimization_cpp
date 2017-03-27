@@ -14,6 +14,7 @@
 #include <comp_shp.h>
 #include <ticktock.h>
 #include "armadillo"
+#include <boost/math/distributions/students_t.hpp>
 
 // Author Lin Gao, lingao.gao@mail.utoronto.ca
 // Created March 5, 2017 for max sharpe problem at Bluewater Technologies Inc.
@@ -29,6 +30,7 @@ void free_matrix(double **a);
 
 using namespace arma;
 using namespace std;
+using namespace boost::math;
 
 int main(int argc, char *argv[])
 {
@@ -145,23 +147,56 @@ int main(int argc, char *argv[])
     vec tstat_OLS(n+1);
     vec tstat_MAX(n+1);
     vec tstat_MAX_norm(n+1);
+    vec q_OLS(n+1);
+    vec q_MAX(n+1);
+    vec q_MAX_norm(n+1);
     for (int i=0;i<n+1;i++){
         tstat_OLS(i) = mean(mA_OLS.col(i))/stddev(mA_OLS.col(i));
         tstat_MAX(i) = mean(mA_MAX.col(i))/stddev(mA_MAX.col(i));
         tstat_MAX_norm(i) = mean(mA_MAX_norm.col(i))/stddev(mA_MAX_norm.col(i));
     }
-    cout << "Mean of the OLS parameters are:" << endl;
-    mean(mA_OLS).print();
-    cout << "T stats for the OLS parameters are:" << endl;
-    tstat_OLS.print();
-    cout << "Mean of the max sharpe parameters are:" << endl;
-    mean(mA_MAX).print();
-    cout << "T stats for the max sharpe parameters are:" << endl;
-    tstat_MAX.print();
-    cout << "Mean of the max sharpe normalized parameters are:" << endl;
-    mean(mA_MAX_norm).print();
-    cout << "T stats for the max sharpe normalized parameters are:" << endl;
-    tstat_MAX_norm.print();
+    students_t dist(N_bs-1); // double check if it is N_bs or N
+    for (int i=0;i<mx.n_cols;i++){
+        q_OLS(i) = 2*cdf(complement(dist, fabs(tstat_OLS(i))));
+        q_MAX(i) = 2*cdf(complement(dist, fabs(tstat_MAX(i))));
+        q_MAX_norm(i) = 2*cdf(complement(dist, fabs(tstat_MAX_norm(i))));
+    }
+
+    // report statistics
+    cout << "OLS" << endl;
+    cout << " Estimate (mean) " << " t value " << " Pr(>|t|)"<<endl;
+    mat OLS_report(n+1,3);
+    OLS_report.col(0) = mean(mA_OLS).t();
+    OLS_report.col(1) = tstat_OLS;
+    OLS_report.col(2) = q_OLS;
+    OLS_report.print();
+    cout << "Portfolio Shp " << mean(vshp_OLS) << endl;
+    cout << "Contract Shp " << endl;
+    mean(mshp_contract_OLS).print();
+
+    cout << endl;
+    cout << "MAX Sharpe" << endl;
+    cout << " Estimate (mean) " << " t value " << " Pr(>|t|)"<<endl;
+    mat MAX_report(n+1,3);
+    MAX_report.col(0) = mean(mA_MAX).t();
+    MAX_report.col(1) = tstat_MAX;
+    MAX_report.col(2) = q_MAX;
+    MAX_report.print();
+    cout << "Portfolio Shp " << mean(vshp_MAX) << endl;
+    cout << "Contract Shp " << endl;
+    mean(mshp_contract_MAX).print();
+
+    cout << endl;
+    cout << "MAX Sharpe normalized" << endl;
+    cout << " Estimate (mean) " << " t value " << " Pr(>|t|)"<<endl;
+    mat MAX_norm_report(n+1,3);
+    MAX_norm_report.col(0) = mean(mA_MAX_norm).t();
+    MAX_norm_report.col(1) = tstat_MAX_norm;
+    MAX_norm_report.col(2) = q_MAX_norm;
+    MAX_norm_report.print();
+    cout << "Portfolio Shp " << mean(vshp_MAX_norm) << endl;
+    cout << "Contract Shp " << endl;
+    mean(mshp_contract_MAX_norm).print();
 }
 
 /* Auxiliary routine: printing a matrix */
