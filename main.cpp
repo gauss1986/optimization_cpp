@@ -167,6 +167,9 @@ int main(int argc, char *argv[])
     mat A1(m,2,fill::ones); // normalize
     A1.col(1) = A_MAX_1;
     vec c1 = solve(A1,A_OLS_1);
+    cout << "Regression coeffs are " << endl;
+    c1.print();
+    c1(0) = 0;
     vec A_MAX_1norm = A1*c1; 
     cout << "Raw coeffs are " << endl;
     A_MAX_1.t().print();
