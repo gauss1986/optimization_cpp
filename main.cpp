@@ -25,6 +25,7 @@
 /* Auxiliary routines prototypes */
 extern void print_matrix( char* desc, MKL_INT m, MKL_INT n, double* a, MKL_INT lda );
 extern void print_vector_norm( char* desc, MKL_INT m, MKL_INT n, double* a, MKL_INT lda );
+void linearstat(mat mA, vec vshp, mat mshp_contract, const int N_bs, const int n);
 double **matrix(int n,int m);
 void free_matrix(double **a);
 
@@ -143,60 +144,43 @@ int main(int argc, char *argv[])
     T.tock("Bootstrapping costs ");
     cout << endl;
 
-    // compute statistics
-    vec tstat_OLS(n+1);
-    vec tstat_MAX(n+1);
-    vec tstat_MAX_norm(n+1);
-    vec q_OLS(n+1);
-    vec q_MAX(n+1);
-    vec q_MAX_norm(n+1);
-    for (int i=0;i<n+1;i++){
-        tstat_OLS(i) = mean(mA_OLS.col(i))/stddev(mA_OLS.col(i));
-        tstat_MAX(i) = mean(mA_MAX.col(i))/stddev(mA_MAX.col(i));
-        tstat_MAX_norm(i) = mean(mA_MAX_norm.col(i))/stddev(mA_MAX_norm.col(i));
-    }
-    students_t dist(N_bs-1); // double check if it is N_bs or N
-    for (int i=0;i<mx.n_cols;i++){
-        q_OLS(i) = 2*cdf(complement(dist, fabs(tstat_OLS(i))));
-        q_MAX(i) = 2*cdf(complement(dist, fabs(tstat_MAX(i))));
-        q_MAX_norm(i) = 2*cdf(complement(dist, fabs(tstat_MAX_norm(i))));
-    }
-
-    // report statistics
     cout << "OLS" << endl;
-    cout << " Estimate (mean) " << " t value " << " Pr(>|t|)"<<endl;
-    mat OLS_report(n+1,3);
-    OLS_report.col(0) = mean(mA_OLS).t();
-    OLS_report.col(1) = tstat_OLS;
-    OLS_report.col(2) = q_OLS;
-    OLS_report.print();
-    cout << "Portfolio Shp " << mean(vshp_OLS) << endl;
-    cout << "Contract Shp " << endl;
-    mean(mshp_contract_OLS).print();
-
-    cout << endl;
+    linearstat(mA_OLS, vshp_OLS, mshp_contract_OLS, N_bs, n);
     cout << "MAX Sharpe" << endl;
-    cout << " Estimate (mean) " << " t value " << " Pr(>|t|)"<<endl;
-    mat MAX_report(n+1,3);
-    MAX_report.col(0) = mean(mA_MAX).t();
-    MAX_report.col(1) = tstat_MAX;
-    MAX_report.col(2) = q_MAX;
-    MAX_report.print();
-    cout << "Portfolio Shp " << mean(vshp_MAX) << endl;
-    cout << "Contract Shp " << endl;
-    mean(mshp_contract_MAX).print();
+    linearstat(mA_MAX, vshp_MAX, mshp_contract_MAX, N_bs, n);
+    cout << "MAX Shapre normalized" << endl;
+    linearstat(mA_MAX_norm, vshp_MAX_norm, mshp_contract_MAX_norm, N_bs, n);
 
-    cout << endl;
-    cout << "MAX Sharpe normalized" << endl;
-    cout << " Estimate (mean) " << " t value " << " Pr(>|t|)"<<endl;
-    mat MAX_norm_report(n+1,3);
-    MAX_norm_report.col(0) = mean(mA_MAX_norm).t();
-    MAX_norm_report.col(1) = tstat_MAX_norm;
-    MAX_norm_report.col(2) = q_MAX_norm;
-    MAX_norm_report.print();
-    cout << "Portfolio Shp " << mean(vshp_MAX_norm) << endl;
+    // OLS just once
+    cout << "OLS just once" << endl;
+    vec A_OLS_1 = OLS(N, n, m, x0, x, y);
+    double shp_OLS_1;
+    vec shp_contract_OLS_1 = comp_shp(shp_OLS_1, N, m, n, A_OLS_1, mx, my, vx0);
+    cout << "Coeffs are " << endl;
+    A_OLS_1.t().print();
+    cout << "Portfolio Shp " << shp_OLS_1 << endl;
     cout << "Contract Shp " << endl;
-    mean(mshp_contract_MAX_norm).print();
+    shp_contract_OLS_1.t().print();
+    // maxsharpe just once
+    cout << "Max Sharpe just once" << endl;
+    vec A_MAX_1 = maxshp(N, n, m, mx, my, vx0);
+    mat A1(m,2,fill::ones); // normalize
+    A1.col(1) = A_MAX_1;
+    vec c1 = solve(A1,A_OLS_1);
+    vec A_MAX_1norm = A1*c1; 
+    cout << "Raw coeffs are " << endl;
+    A_MAX_1.t().print();
+    double shp_MAX_1;
+    vec shp_contract_MAX_1 = comp_shp(shp_MAX_1, N, m, n, A_MAX_1, mx, my, vx0);
+    cout << "Portfolio Shp " << shp_MAX_1 << endl;
+    cout << "Contract Shp " << endl;
+    shp_contract_MAX_1.t().print();
+    cout << "Normalized coeffs are " << endl;
+    A_MAX_1norm.t().print();
+    shp_contract_MAX_1 = comp_shp(shp_MAX_1, N, m, n, A_MAX_1norm, mx, my, vx0);
+    cout << "Portfolio Shp " << shp_MAX_1 << endl;
+    cout << "Contract Shp " << endl;
+    shp_contract_MAX_1.t().print();
 }
 
 /* Auxiliary routine: printing a matrix */
@@ -209,4 +193,27 @@ void print_matrix( char* desc, MKL_INT m, MKL_INT n, double* a, MKL_INT lda ) {
         }
 }
 
+void linearstat(mat mA, vec vshp, mat mshp_contract, const int N_bs, const int n){
+    // compute statistics
+    vec tstat(n+1);
+    vec q(n+1);
+    for (int i=0;i<n+1;i++){
+        tstat(i) = mean(mA.col(i))/stddev(mA.col(i));
+    }
+    students_t dist(N_bs-1); // double check if it is N_bs or N
+    for (int i=0;i<n+1;i++){
+        q(i) = 2*cdf(complement(dist, fabs(tstat(i))));
+    }
 
+    // report statistics
+    cout << " Estimate (mean) " << " t value " << " Pr(>|t|)"<<endl;
+    mat report(n+1,3);
+    report.col(0) = mean(mA).t();
+    report.col(1) = tstat;
+    report.col(2) = q;
+    report.print();
+    cout << "Portfolio Shp " << mean(vshp) << endl;
+    cout << "Contract Shp " << endl;
+    mean(mshp_contract).print();
+    cout << endl;
+}
