@@ -1,4 +1,4 @@
-CXXFLAGS =  -O1 -I/usr/include/boost/ -I/usr/local/include -I/opt/intel/mkl/include  
+CXXFLAGS =  -O1 -g -ggdb -I/usr/include/boost/ -I/usr/local/include -I/opt/intel/mkl/include  
 LDFLAGS =  -L/usr/local/lib64/ -L/usr/lib64/ -L/opt/intel/mkl/lib/intel64 -L/usr/lib64/boost 
 LDLIBS =  -lpthread -lboost_thread-mt -lm -lmkl_rt -llzma -lpthread -lgsl -lgslcblas -lmkl_intel_lp64 -lmkl_sequential -lmkl_core -larmadillo
 CXX = gcc

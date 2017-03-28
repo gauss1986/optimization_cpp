@@ -83,7 +83,7 @@ vector<vector<double> > simplestat(const vector<vector<double> >& data, int N){
         vector<double> stat_1D_val = stat_1D.compute(data[i]);
 
         //cout << " DOF " << i << endl;
-        //stat_1D.report();
+        stat_1D.report();
 
         stat_2D.push_back(stat_1D_val); // store stat_1D into stat
     }

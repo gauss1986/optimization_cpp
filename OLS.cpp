@@ -127,7 +127,7 @@ vec OLS(const int N, const int n, const int m, std::vector<std::vector<double> >
     OLS_stat OLS_stat1;
     OLS_stat1.conv_form(n, newx_copy, newy_copy, newy); 
     OLS_stat1.comp_stat();
-    //OLS_stat1.print();
+    OLS_stat1.print();
 
     /* Print residual sum of squares for the solution */
     //print_vector_norm( "Residual sum of squares for the solution", N-n-1, 1, &newy[n+1], 1 );

@@ -25,7 +25,7 @@
 /* Auxiliary routines prototypes */
 extern void print_matrix( char* desc, MKL_INT m, MKL_INT n, double* a, MKL_INT lda );
 extern void print_vector_norm( char* desc, MKL_INT m, MKL_INT n, double* a, MKL_INT lda );
-void linearstat(mat mA, vec vshp, mat mshp_contract, const int N_bs, const int n);
+void linearstat(mat mA, vec vx0, mat mx, mat my, vec vshp, mat mshp_contract, const int N, const int n, const int m);
 double **matrix(int n,int m);
 void free_matrix(double **a);
 
@@ -73,18 +73,18 @@ int main(int argc, char *argv[])
     vector< vector<double> > x0_stat = simplestat(x0_col, 1);
     //cout << "x" <<  endl;
     vector< vector<double> > x_col = reorgdata(x,N_x_row,N_x_col);
-    vector< vector<double> > x_stat = simplestat(x_col, n+1);
+    vector< vector<double> > x_stat = simplestat(x_col, m);
     //cout << "y" <<  endl;
     vector< vector<double> > y_col = reorgdata(y,N_y_row,N_y_col);
-    vector< vector<double> > y_stat = simplestat(y_col, n+1);
+    vector< vector<double> > y_stat = simplestat(y_col, m);
     cout <<  endl;
 
     // covert x0,x,y to arma format
-    mat mx(N,n+1);
-    mat my(N,n+1);
+    mat mx(N,m);
+    mat my(N,m);
     vec vx0(N);
     for (int i=0;i<N;i++){
-        for (int j=0;j<n+1;j++){
+        for (int j=0;j<m;j++){
             mx(i,j) = x[i][j];
             my(i,j) = y[i][j];
         }
@@ -111,8 +111,8 @@ int main(int argc, char *argv[])
         vector<vector<double> > x_sample;
         vector<vector<double> > y_sample;
         vec vx0_sample(N);
-        mat mx_sample(N,n+1);
-        mat my_sample(N,n+1);
+        mat mx_sample(N,m);
+        mat my_sample(N,m);
         vec sample(N); 
         sample = resample_vec(x0_sample,x_sample,y_sample,x0,x,y);
         resample_arma(sample,vx0_sample,mx_sample,my_sample,vx0,mx,my);
@@ -134,6 +134,7 @@ int main(int argc, char *argv[])
 	mat A(m,2,fill::ones);
 	A.col(1) = A_MAX;
 	vec c = solve(A,A_OLS);
+	c(0) = 0;
 	vec A_MAX_norm = A*c; 
         mA_MAX_norm.row(i) = A_MAX_norm.t(); 
         double shp_MAX_norm;
@@ -142,14 +143,14 @@ int main(int argc, char *argv[])
         vshp_MAX_norm(i) = shp_MAX_norm;
     }
     T.tock("Bootstrapping costs ");
-    cout << endl;
+    cout << "Statistics: "<< endl;
 
     cout << "OLS" << endl;
-    linearstat(mA_OLS, vshp_OLS, mshp_contract_OLS, N_bs, n);
+    linearstat(mA_OLS, vx0, mx, my, vshp_OLS, mshp_contract_OLS, N, n, m);
     cout << "MAX Sharpe" << endl;
-    linearstat(mA_MAX, vshp_MAX, mshp_contract_MAX, N_bs, n);
+    linearstat(mA_MAX, vx0, mx, my, vshp_MAX, mshp_contract_MAX, N, n, m);
     cout << "MAX Shapre normalized" << endl;
-    linearstat(mA_MAX_norm, vshp_MAX_norm, mshp_contract_MAX_norm, N_bs, n);
+    linearstat(mA_MAX_norm, vx0, mx, my, vshp_MAX_norm, mshp_contract_MAX_norm, N, n, m);
 
     // OLS just once
     cout << "OLS just once" << endl;
@@ -161,6 +162,8 @@ int main(int argc, char *argv[])
     cout << "Portfolio Shp " << shp_OLS_1 << endl;
     cout << "Contract Shp " << endl;
     shp_contract_OLS_1.t().print();
+    cout << endl;
+
     // maxsharpe just once
     cout << "Max Sharpe just once" << endl;
     vec A_MAX_1 = maxshp(N, n, m, mx, my, vx0);
@@ -168,16 +171,16 @@ int main(int argc, char *argv[])
     A1.col(1) = A_MAX_1;
     vec c1 = solve(A1,A_OLS_1);
     cout << "Regression coeffs are " << endl;
-    c1.print();
+    //c1.print();
     c1(0) = 0;
     vec A_MAX_1norm = A1*c1; 
-    cout << "Raw coeffs are " << endl;
+    //cout << "Raw coeffs are " << endl;
     A_MAX_1.t().print();
     double shp_MAX_1;
     vec shp_contract_MAX_1 = comp_shp(shp_MAX_1, N, m, n, A_MAX_1, mx, my, vx0);
-    cout << "Portfolio Shp " << shp_MAX_1 << endl;
-    cout << "Contract Shp " << endl;
-    shp_contract_MAX_1.t().print();
+    //cout << "Portfolio Shp " << shp_MAX_1 << endl;
+    //cout << "Contract Shp " << endl;
+    //shp_contract_MAX_1.t().print();
     cout << "Normalized coeffs are " << endl;
     A_MAX_1norm.t().print();
     shp_contract_MAX_1 = comp_shp(shp_MAX_1, N, m, n, A_MAX_1norm, mx, my, vx0);
@@ -196,16 +199,35 @@ void print_matrix( char* desc, MKL_INT m, MKL_INT n, double* a, MKL_INT lda ) {
         }
 }
 
-void linearstat(mat mA, vec vshp, mat mshp_contract, const int N_bs, const int n){
+void linearstat(mat mA, vec vx0, mat mx, mat my, vec vshp, mat mshp_contract, const int N, const int n, const int m){
     // compute statistics
     vec tstat(n+1);
     vec q(n+1);
     for (int i=0;i<n+1;i++){
         tstat(i) = mean(mA.col(i))/stddev(mA.col(i));
     }
-    students_t dist(N_bs-1); // double check if it is N_bs or N
+    students_t dist(N-1); // double check if it is N_bs or N
     for (int i=0;i<n+1;i++){
         q(i) = 2*cdf(complement(dist, fabs(tstat(i))));
+    }
+    vec sigmasq(m);
+    vec R2(m);
+    vec R2_adj(m);
+
+    for (int i=0;i<m;i++){
+    	// sigmasq
+    	vec vy = my.col(i);
+    	vec vy_copy(vy);
+	mat mx_sym(N,n+1,fill::ones);
+	mx_sym.col(1) = vx0;
+	mx_sym.col(2) = mx.col(i);
+    	vy = vy-mx_sym*mean(mA).t();
+    	vy = vy%vy;
+    	sigmasq(i) = sum(vy)/(N-n-1); 
+    	// R2 stats
+    	R2(i) = 1-sum(vy)/var(vy_copy)/(N-1);
+    	// adjusted R2 stats
+    	R2_adj(i) = R2(i)-(1-R2(i))*n/(N-n-1);
     }
 
     // report statistics
@@ -218,5 +240,10 @@ void linearstat(mat mA, vec vshp, mat mshp_contract, const int N_bs, const int n
     cout << "Portfolio Shp " << mean(vshp) << endl;
     cout << "Contract Shp " << endl;
     mean(mshp_contract).print();
+    for (int i=0;i<m;i++){
+        cout << "Sym " << i << endl;
+    	cout << "Residual standard error=" << sigmasq(i) << " on " << N-n-1 << " dof." << endl;
+    	cout << "R2=" << R2 (i)<< ", Adj R2=" << R2_adj(i) << endl;
+    }
     cout << endl;
 }
