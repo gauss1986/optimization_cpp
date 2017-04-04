@@ -11,7 +11,6 @@
 #include <algorithm>
 #include <OLS.h>
 #include <maxshp.h>
-#include <comp_shp.h>
 #include <ticktock.h>
 #include "armadillo"
 #include <boost/math/distributions/students_t.hpp>
@@ -23,11 +22,7 @@
 // The statistics is calling BOOST package
 
 /* Auxiliary routines prototypes */
-extern void print_matrix( char* desc, MKL_INT m, MKL_INT n, double* a, MKL_INT lda );
-extern void print_vector_norm( char* desc, MKL_INT m, MKL_INT n, double* a, MKL_INT lda );
 void linearstat(mat mA, vec vx0, mat mx, mat my, vec vshp, mat mshp_contract, const int N, const int n, const int m);
-double **matrix(int n,int m);
-void free_matrix(double **a);
 
 using namespace arma;
 using namespace std;
@@ -120,14 +115,14 @@ int main(int argc, char *argv[])
         vec A_OLS = OLS_day(N, n, m, x0_sample, x_sample, y_sample);
         mA_OLS.row(i) = A_OLS.t();
         double shp_OLS;
-        vec shp_contract_OLS = comp_shp(shp_OLS, N, m, n, A_OLS, mx, my, vx0);
+        vec shp_contract_OLS = comp_shp(shp_OLS, n, A_OLS, mx, my, vx0);
         mshp_contract_OLS.row(i) = shp_contract_OLS.t();
         vshp_OLS(i) = shp_OLS;
         // maxsharpe
         vec A_MAX = maxshp(N, n, m, mx_sample, my_sample, vx0_sample);
         mA_MAX.row(i) = A_MAX.t(); 
         double shp_MAX;
-        vec shp_contract_MAX = comp_shp(shp_MAX, N, m, n, A_MAX, mx, my, vx0);
+        vec shp_contract_MAX = comp_shp(shp_MAX, n, A_MAX, mx, my, vx0);
         mshp_contract_MAX.row(i) = shp_contract_MAX.t();
         vshp_MAX(i) = shp_MAX;
 	// normalize maxsharpe coeffs w.r.t. OLS coeffs.
@@ -138,7 +133,7 @@ int main(int argc, char *argv[])
 	vec A_MAX_norm = A*c; 
         mA_MAX_norm.row(i) = A_MAX_norm.t(); 
         double shp_MAX_norm;
-        vec shp_contract_MAX_norm = comp_shp(shp_MAX_norm, N, m, n, A_MAX, mx, my, vx0);
+        vec shp_contract_MAX_norm = comp_shp(shp_MAX_norm, n, A_MAX, mx, my, vx0);
         mshp_contract_MAX_norm.row(i) = shp_contract_MAX_norm.t();
         vshp_MAX_norm(i) = shp_MAX_norm;
     }
@@ -156,7 +151,7 @@ int main(int argc, char *argv[])
     cout << "OLS just once" << endl;
     vec A_OLS_1 = OLS_day(N, n, m, x0, x, y);
     double shp_OLS_1;
-    vec shp_contract_OLS_1 = comp_shp(shp_OLS_1, N, m, n, A_OLS_1, mx, my, vx0);
+    vec shp_contract_OLS_1 = comp_shp(shp_OLS_1, n, A_OLS_1, mx, my, vx0);
     cout << "Coeffs are " << endl;
     A_OLS_1.t().print();
     cout << "Portfolio Shp " << shp_OLS_1 << endl;
@@ -167,6 +162,13 @@ int main(int argc, char *argv[])
     // OLS_by_record just once
     cout << "Naive OLS" << endl;
     vec A_OLS_record = OLS_record(N,n,m,mx,my,vx0); 
+    double shp_OLS_2;
+    vec shp_contract_OLS_2 = comp_shp(shp_OLS_2, n, A_OLS_record, mx, my, vx0);
+    cout << "Coeffs are " << endl;
+    A_OLS_record.t().print();
+    cout << "Portfolio Shp " << shp_OLS_2 << endl;
+    cout << "Contract Shp " << endl;
+    shp_contract_OLS_2.t().print();
     cout << endl;
 
     // maxsharpe just once
@@ -182,26 +184,16 @@ int main(int argc, char *argv[])
     //cout << "Raw coeffs are " << endl;
     A_MAX_1.t().print();
     double shp_MAX_1;
-    vec shp_contract_MAX_1 = comp_shp(shp_MAX_1, N, m, n, A_MAX_1, mx, my, vx0);
+    vec shp_contract_MAX_1 = comp_shp(shp_MAX_1, n, A_MAX_1, mx, my, vx0);
     //cout << "Portfolio Shp " << shp_MAX_1 << endl;
     //cout << "Contract Shp " << endl;
     //shp_contract_MAX_1.t().print();
     cout << "Normalized coeffs are " << endl;
     A_MAX_1norm.t().print();
-    shp_contract_MAX_1 = comp_shp(shp_MAX_1, N, m, n, A_MAX_1norm, mx, my, vx0);
+    shp_contract_MAX_1 = comp_shp(shp_MAX_1, n, A_MAX_1norm, mx, my, vx0);
     cout << "Portfolio Shp " << shp_MAX_1 << endl;
     cout << "Contract Shp " << endl;
     shp_contract_MAX_1.t().print();
-}
-
-/* Auxiliary routine: printing a matrix */
-void print_matrix( char* desc, MKL_INT m, MKL_INT n, double* a, MKL_INT lda ) {
-        MKL_INT i, j;
-        printf( "\n %s\n", desc );
-        for( i = 0; i < m; i++ ) {
-                for( j = 0; j < n; j++ ) printf( " %6.2f", a[i*lda+j] );
-                printf( "\n" );
-        }
 }
 
 void linearstat(mat mA, vec vx0, mat mx, mat my, vec vshp, mat mshp_contract, const int N, const int n, const int m){

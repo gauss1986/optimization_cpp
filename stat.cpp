@@ -127,3 +127,25 @@ void resample_arma(vec& sample, vec& vx0_sample, mat& mx_sample, mat& my_sample,
         my_sample.row(i) = my.row(sample(i));
     }
 }
+
+vec comp_shp(double& shp, const int n, vec& A, mat& mx, mat& my, vec& vx0){
+    // compute the sharpe ratio
+	int m = my.n_cols; // No. of contracts
+	int N = vx0.n_elem; // No. of days
+
+    vec pnl = zeros(N);
+    vec shp_contract(m); 
+    for (int i=0;i<m;i++){
+        mat completex(N,n+1);
+        completex.col(0).ones();
+        completex.col(1) = vx0;
+        completex.col(2) = mx.col(i); 
+        vec yfit = conv_to<vec>::from(completex*A);
+        vec pnl_contract = my.col(i)%yfit;
+        pnl = pnl + pnl_contract;
+        shp_contract(i) = arma::mean(pnl_contract)/stddev(pnl_contract);
+    }
+    shp = arma::mean(pnl)/stddev(pnl);
+
+    return shp_contract;
+}

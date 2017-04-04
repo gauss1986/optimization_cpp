@@ -8,6 +8,9 @@ all: main
 ticktock.o: ticktock.cc
 	$(CXX) -c $(CXXFLAGS) -I . -o ticktock.o ticktock.cc
 
+misc.o: misc.cpp
+	$(CXX) -c $(CXXFLAGS) -I . -o misc.o misc.cpp
+
 txtIO.o: txtIO.cpp
 	$(CXX) -c $(CXXFLAGS) -I . -o txtIO.o txtIO.cpp
 
@@ -20,17 +23,11 @@ OLS.o: OLS.cpp
 maxshp.o: maxshp.cpp
 	$(CXX) -c $(CXXFLAGS) -I . -o maxshp.o maxshp.cpp
 
-comp_shp.o: comp_shp.cpp
-	$(CXX) -c $(CXXFLAGS) -I . -o comp_shp.o comp_shp.cpp
-
 main.o: main.cpp
 	$(CXX) -c $(CXXFLAGS) -I . -o main.o main.cpp
 
-main: ticktock.o txtIO.o stat.o OLS.o maxshp.o comp_shp.o main.o
-	$(CXX) $(LDFLAGS) -o main ticktock.o txtIO.o stat.o OLS.o maxshp.o comp_shp.o main.o $(LDLIBS)
-
-test: test.cpp
-	$(CXX) $(CXXFLAGS) -o $@ $< $(LDFLAGS) 
+main: ticktock.o misc.o txtIO.o stat.o OLS.o maxshp.o main.o
+	$(CXX) $(LDFLAGS) -o main ticktock.o misc.o txtIO.o stat.o OLS.o maxshp.o main.o $(LDLIBS)
 
 clean:
-	rm -f test main ticktock.o main.o txtIO.o stat.o OLS.o maxshp.o comp_shp.o
+	rm -f main ticktock.o misc.o main.o txtIO.o stat.o OLS.o maxshp.o 

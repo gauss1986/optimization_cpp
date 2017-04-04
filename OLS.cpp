@@ -11,24 +11,12 @@
 #include <stdio.h>
 #include <OLS.h>
 #include <ticktock.h>
+#include <misc.h>
 #include "armadillo"
 #include <boost/math/distributions/students_t.hpp>
 
 using namespace arma;
 using namespace boost::math;
-
-void convert_to_arma(const int n, const std::vector<std::vector<double> >& x, const std::vector<double>& y, const double* coeff, int N, vec& vy, vec& vc, mat& mx){
-    // conver vector and array to arma format
-    N = x.size();
-    vy = conv_to<vec>::from(y);
-    mx.set_size(N,n+1);
-    for (int i=0;i<N;i++){
-        for (int j=0;j<n+1;j++){
-            mx(i,j) = x[i][j];
-        }
-    }
-    vc = vec(coeff,n+1);
-}
 
 void comp_stat(vec vy, vec vc, mat mx){
     // compute and print stats
@@ -96,11 +84,11 @@ vec OLS_day(const int N, const int n, const int m, std::vector<std::vector<doubl
     //T.tock("DGELS costs ");
 
     // Compute and print the stats on OLS
-    vec vy;
-    vec vc;
     mat mx;
-    convert_to_arma(n, newx_copy, newy_copy, newy, N, vy, vc, mx); 
-    comp_stat(vy, vc, mx);
+    vec vc = vec(newy,n+1);
+    vec vy = conv_to<vec>::from(newy_copy);
+    vec2D_to_arma(newx_copy, mx); 
+    //comp_stat(vy, vc, mx);
     //OLS_stat1.print();
 
     /* Print residual sum of squares for the solution */
@@ -134,21 +122,6 @@ vec OLS_record(const int N, const int n, const int m, mat& mx, mat& my, vec& vx0
     comp_stat(newy,A,newx);
 
     return A;
-}
-
-double **matrix(int n,int m) {
-    double **a = new double * [n];
-    a[0] = new double [n*m];
-    
-    for (int i=1; i<n; i++)
-        a[i] = &a[0][i*m];
-    
-    return a;
-}
-
-void free_matrix(double **a) {
-    delete[] a[0];
-    delete[] a;
 }
 
 /* Auxiliary routine from Intel MKL example: printing norms of matrix columns */
