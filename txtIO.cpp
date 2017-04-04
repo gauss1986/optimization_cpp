@@ -6,23 +6,26 @@
 #include <stdlib.h>
 #include <txtIO.h>
 
-std::vector<std::vector<double> > readtxt(const std::string& filename,int& N_row, int& N_col){
+using namespace std;
+
+/* read text file into 2D vector and feedback N_row/N_co */
+vector<vector<double> > readtxt(const string& filename, int& N_row, int& N_col){
     // open and check file
-    std::ifstream f;
+    ifstream f;
     f.open(filename.c_str());
     if(!f) {
-        std::cout << "Cannot open input file "<< filename.c_str() << ".\n";
+        cout << "Cannot open input file "<< filename.c_str() << ".\n";
     }
 
     // read 2D vector from file 
-    std::vector<std::vector<double> > rows; 
-    std::vector<int> col_per_row;
-    std::string temp;
+    vector<vector<double> > rows; 
+    vector<int> col_per_row;
+    string temp;
     N_row = 0;
     while(getline(f,temp)){
-        std::istringstream buffer(temp);
-        std::vector<double> row;
-        std::string temp2;
+        istringstream buffer(temp);
+        vector<double> row;
+        string temp2;
         int col=0;
         while(getline(buffer,temp2,',')){
             row.push_back(atof(temp2.c_str()));
@@ -41,11 +44,11 @@ std::vector<std::vector<double> > readtxt(const std::string& filename,int& N_row
         i++;
     }
     if (i!=N_row-1){
-        std::cout<<"The No. of Col. on each row is NOT the same.\n";
+        cout<<"The No. of Col. on each row is NOT the same.\n";
     }
 
     // output size of data
-    std:: cout<< "Size of "<<filename.c_str()<<" is "<<N_row<<" rows, "<<N_col<< " cols.\n";
+     cout<< "Size of "<<filename.c_str()<<" is "<<N_row<<" rows, "<<N_col<< " cols.\n";
 
     //printdata(rows,10,N_col);
 
@@ -53,10 +56,10 @@ std::vector<std::vector<double> > readtxt(const std::string& filename,int& N_row
     return rows;        
 }
 
-std::vector<std::vector<double> > reorgdata(const std::vector<std::vector<double> >& data, const int N_row, const int N_col){
-    std::vector<std::vector<double> > newdata;
+vector<vector<double> > reorgdata(const vector<vector<double> >& data, const int N_row, const int N_col){
+    vector<vector<double> > newdata;
     for (int i=0;i<N_col;i++){
-        std::vector<double> coldata;
+        vector<double> coldata;
         for (int j=0;j<N_row;j++){
             coldata.push_back(data[j][i]);
         }
@@ -66,14 +69,14 @@ std::vector<std::vector<double> > reorgdata(const std::vector<std::vector<double
     return newdata;
 }
     
-void printdata(const std::vector<std::vector<double> >& data, int N_row, int N_col){
+void printdata(const vector<vector<double> >& data, int N_row, int N_col){
     // output content 
-    std::cout << "Printing the first " << N_row << " rows of the data" << std::endl;
+    cout << "Printing the first " << N_row << " rows of the data" << endl;
     for (int i=0;i<N_row;i++){    
         for (int j=0;j<N_col;j++){
-            std::cout << data[i][j] << " ";
+            cout << data[i][j] << " ";
         }
-        std::cout << std::endl;
+        cout << endl;
     }
 }
 

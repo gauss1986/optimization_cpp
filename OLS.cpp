@@ -102,8 +102,9 @@ vec OLS_day(const int N, const int n, const int m, std::vector<std::vector<doubl
     return vcoeff;
 }
 
+/* OLS by record */
 vec OLS_record(const int N, const int n, const int m, mat& mx, mat& my, vec& vx0){
-    // construct newx, newy
+	// construct newx, newy
     mat newx(3*N,n+1,fill::zeros);
     vec newy(3*N,fill::zeros);
     for (int i=0;i<m;i++){
@@ -111,7 +112,7 @@ vec OLS_record(const int N, const int n, const int m, mat& mx, mat& my, vec& vx0
     	newx_block.col(1) = vx0;
     	newx_block.col(2) = mx.col(i);
         newx.rows(i*N,(i+1)*N-1) = newx_block;
-	newy.rows(i*N,(i+1)*N-1) = my.col(i);
+		newy.rows(i*N,(i+1)*N-1) = my.col(i);
     }
 
     vec A = solve(newx,newy);
@@ -124,15 +125,3 @@ vec OLS_record(const int N, const int n, const int m, mat& mx, mat& my, vec& vx0
     return A;
 }
 
-/* Auxiliary routine from Intel MKL example: printing norms of matrix columns */
-void print_vector_norm( char* desc, MKL_INT m, MKL_INT n, double* a, MKL_INT lda ) {
-    MKL_INT i, j;
-    double norm;
-    printf( "\n %s\n", desc );
-    for( j = 0; j < n; j++ ) {
-        norm = 0.0;
-        for( i = 0; i < m; i++ ) norm += a[i*lda+j] * a[i*lda+j];
-        printf( " %6.2f", norm );
-    }
-    printf( "\n" );
-}
