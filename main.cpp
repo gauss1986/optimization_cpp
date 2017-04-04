@@ -11,6 +11,7 @@
 #include <algorithm>
 #include <OLS.h>
 #include <maxshp.h>
+#include <misc.h>
 #include <ticktock.h>
 #include "armadillo"
 #include <boost/math/distributions/students_t.hpp>
@@ -34,7 +35,7 @@ int main(int argc, char *argv[])
     int N = 0; // No. of records
     int n = 2; // No. of vars. in linear model
     int m = 0; // No. of contracts    
-    int N_bs = 1; // Bootstrap No. 
+    int N_bs = 500; // Bootstrap No. 
     double **newx;
     int *jpvt;
 
@@ -75,16 +76,22 @@ int main(int argc, char *argv[])
     cout <<  endl;
 
     // covert x0,x,y to arma format
-    mat mx(N,m);
-    mat my(N,m);
-    vec vx0(N);
-    for (int i=0;i<N;i++){
-        for (int j=0;j<m;j++){
-            mx(i,j) = x[i][j];
-            my(i,j) = y[i][j];
-        }
-        vx0(i) = x0[i][0];
-    }
+    //for (int i=0;i<N;i++){
+    //    for (int j=0;j<m;j++){
+    //        mx(i,j) = x[i][j];
+    //        my(i,j) = y[i][j];
+    //    }
+    //    vx0(i) = x0[i][0];
+    //}
+	// convert x0, x, y to arma format
+	mat my, mx, mx0;
+    vec2D_to_arma(y,my);
+	vec2D_to_arma(x,mx);
+	vec2D_to_arma(x0,mx0);
+    vec vx0 = conv_to<vec>::from(mx0);
+	cout << "mx size=" << mx.n_rows << "x" << mx.n_cols << endl; 
+	cout << "my size=" << my.n_rows << "x" << my.n_cols << endl; 
+	cout << "vx0 size=" << vx0.n_elem << endl; 
 
     TickTock T;
     mat mA_OLS(N_bs,n+1);
@@ -102,17 +109,12 @@ int main(int argc, char *argv[])
     for (int i=0;i<N_bs;i++){ 
 	if ((i%(N_bs/100)==0)) cout << double(i)/N_bs*100 << "%" << endl;
         // resampling
-        vector<vector<double> > x0_sample;
-        vector<vector<double> > x_sample;
-        vector<vector<double> > y_sample;
         vec vx0_sample(N);
         mat mx_sample(N,m);
         mat my_sample(N,m);
-        vec sample(N); 
-        sample = resample_vec(x0_sample,x_sample,y_sample,x0,x,y);
-        resample_arma(sample,vx0_sample,mx_sample,my_sample,vx0,mx,my);
+        resample_arma(vx0_sample,mx_sample,my_sample,vx0,mx,my);
         // OLS
-        vec A_OLS = OLS_day(N, n, m, x0_sample, x_sample, y_sample);
+        vec A_OLS = OLS_day(N, n, m, mx_sample, my_sample, vx0_sample);
         mA_OLS.row(i) = A_OLS.t();
         double shp_OLS;
         vec shp_contract_OLS = comp_shp(shp_OLS, n, A_OLS, mx, my, vx0);
@@ -125,12 +127,12 @@ int main(int argc, char *argv[])
         vec shp_contract_MAX = comp_shp(shp_MAX, n, A_MAX, mx, my, vx0);
         mshp_contract_MAX.row(i) = shp_contract_MAX.t();
         vshp_MAX(i) = shp_MAX;
-	// normalize maxsharpe coeffs w.r.t. OLS coeffs.
-	mat A(m,2,fill::ones);
-	A.col(1) = A_MAX;
-	vec c = solve(A,A_OLS);
-	c(0) = 0;
-	vec A_MAX_norm = A*c; 
+		// normalize maxsharpe coeffs w.r.t. OLS coeffs.
+		mat A(m,2,fill::ones);
+		A.col(1) = A_MAX;
+		vec c = solve(A,A_OLS);
+		c(0) = 0;
+		vec A_MAX_norm = A*c; 
         mA_MAX_norm.row(i) = A_MAX_norm.t(); 
         double shp_MAX_norm;
         vec shp_contract_MAX_norm = comp_shp(shp_MAX_norm, n, A_MAX, mx, my, vx0);
@@ -149,7 +151,7 @@ int main(int argc, char *argv[])
 
     // OLS_by_day just once
     cout << "OLS just once" << endl;
-    vec A_OLS_1 = OLS_day(N, n, m, x0, x, y);
+    vec A_OLS_1 = OLS_day(N, n, m, mx, my, vx0);
     double shp_OLS_1;
     vec shp_contract_OLS_1 = comp_shp(shp_OLS_1, n, A_OLS_1, mx, my, vx0);
     cout << "Coeffs are " << endl;

@@ -91,40 +91,21 @@ vector<vector<double> > simplestat(const vector<vector<double> >& data, int N){
     return stat_2D;
 }
 
-vec resample_vec(vector<vector<double> >& x0_sample, vector<vector<double> >& x_sample, vector<vector<double> >& y_sample, const vector<vector<double> >& x0, const vector<vector<double> >& x, const vector<vector<double> >& y){
+void resample_arma(vec& vx0_sample, mat& mx_sample, mat& my_sample, vec& vx0, mat& mx, mat& my){
+    // sample arma form of matrix and vectors
     // sample x0,x and y
     arma_rng::set_seed_random(); 
-    int N = x0.size();
-    int n = x[0].size();
+    int N = vx0.n_elem;
+    int n = mx.n_cols;
     vec sample(N); 
     sample.randu();
     sample = sample * N;
     vec sample_processed = arma::trunc(sample);
-    //sample_processed.print();
-    
-    for (int i=0;i<N;i++){
-        vector<double> x0_temp;
-        vector<double> x_temp;
-        vector<double> y_temp;
-        for (int j=0;j<n;j++){
-            x_temp.push_back(x[sample_processed(i)][j]);
-            y_temp.push_back(y[sample_processed(i)][j]);
-        }
-        x0_temp.push_back(x0[sample_processed(i)][0]);
-        x_sample.push_back(x_temp);
-        y_sample.push_back(y_temp);
-        x0_sample.push_back(x0_temp);
-    } 
 
-    return sample_processed;
-}
-
-void resample_arma(vec& sample, vec& vx0_sample, mat& mx_sample, mat& my_sample, vec& vx0, mat& mx, mat& my){
-    // sample arma form of matrix and vectors
     for (int i=0;i<vx0.n_rows;i++){
-        vx0_sample(i) = vx0(sample(i));
-        mx_sample.row(i) = mx.row(sample(i));
-        my_sample.row(i) = my.row(sample(i));
+        vx0_sample(i) = vx0(sample_processed(i));
+        mx_sample.row(i) = mx.row(sample_processed(i));
+        my_sample.row(i) = my.row(sample_processed(i));
     }
 }
 

@@ -19,8 +19,46 @@ using namespace arma;
 using namespace boost::math;
 using namespace std;
 
+/* OLS by day */
+vec OLS_day(const int N, const int n, const int m, mat& mx, mat& my, vec& vx0){
+	// generate newx, newy
+	vec newy = sum(my,1);
+	mat newx(N,n+1);
+	newx.col(0).fill(m);
+	newx.col(1) = vx0*m;
+	newx.col(2) = sum(mx,1);
+
+	vec vc = solve(newx,newy);
+
+    // Compute and print the stats on OLS
+    //comp_stat(newy,vc,newx);
+
+    return vc;
+}
+
+/* OLS by record */
+vec OLS_record(const int N, const int n, const int m, mat& mx, mat& my, vec& vx0){
+	// construct newx, newy
+    mat newx(3*N,n+1,fill::zeros);
+    vec newy(3*N,fill::zeros);
+    for (int i=0;i<m;i++){
+    	mat newx_block(N,n+1,fill::ones);
+    	newx_block.col(1) = vx0;
+    	newx_block.col(2) = mx.col(i);
+        newx.rows(i*N,(i+1)*N-1) = newx_block;
+		newy.rows(i*N,(i+1)*N-1) = my.col(i);
+    }
+
+    vec vc = solve(newx,newy);
+
+    // Compute and print the stats on OLS
+    //comp_stat(newy,vc,newx);
+
+    return vc;
+}
+
+/* compute and print stats */
 void comp_stat(vec vy, vec vc, mat mx){
-    // compute and print stats
     int N = vy.n_elem;
     // sigmasq
     vec vy_copy(vy);
@@ -54,98 +92,3 @@ void comp_stat(vec vy, vec vc, mat mx){
     cout << "Multiple R-squared: " << R2 << endl;
     cout << "Adjusted R-squared: " << R2_adj << endl;
 }
-
-vec OLS_day(const int N, const int n, const int m, vector<vector<double> >& x0, vector<vector<double> >& x, vector<vector<double> >& y){
-    // construct newx, newy
-    double **newx = matrix(N,n+1);
-    double *newy = new double[N];
-    vector<double> newy_copy;
-    vector<vector<double> > newx_copy;
-    for (int i=0;i<N;i++){
-        newx[i][0] = m;
-        newx[i][1] = x0[i][0]*m;
-        newx[i][2] = accumulate(x[i].begin(),x[i].end(),0.0);
-        newy[i] = accumulate(y[i].begin(),y[i].end(),0.0);
-    }
-    for (int i=0;i<N;i++){
-        newy_copy.push_back(newy[i]);
-        vector<double> newx_copy_1D;
-        newx_copy_1D.push_back(newx[i][0]);
-        newx_copy_1D.push_back(newx[i][1]);
-        newx_copy_1D.push_back(newx[i][2]);
-        newx_copy.push_back(newx_copy_1D);
-    }
-
-    // DGELS is general purpose and most efficient.
-    // Use DGELSY to handle rank-deficient problems more realiably than DGELS.
-    // Refer to http://www.netlib.org/lapack/lug/node71.html for details.
-    TickTock T;
-    T.tick();
-    LAPACKE_dgels(LAPACK_ROW_MAJOR, 'N', N, n+1, 1, &(newx[0][0]), n+1, &(newy[0]), 1);
-    T.tock("DGELS costs ");
-
-    // Compute and print the stats on OLS
-    //mat mx;
-    vec newy_arma = conv_to<vec>::from(newy_copy);
-    //vec2D_to_arma(newx_copy, mx); 
-	//mat mx0;
-    //vec2D_to_arma(x0, mx0); 
-	//mat my;
-    //vec2D_to_arma(y, my); 
-	//mat newx_arma(N,n+1);
-	//vec newy_arma(N);
-	//newx_arma.col(0).fill(m);
-	//newx_arma.col(1) = mx0*m;
-    //newx_arma.col(2) = sum(mx,1);
-	//newy_arma = sum(my,1);
-	//newy_arma.print(); 
-	mat newx_arma;
-	vec2D_to_arma(newx_copy,newx_arma);
-	T.tick();
-	vec v_arma = solve(newx_arma,newy_arma);
-	T.tock("Arma took");
-
-    vec vc = vec(newy,n+1);
-
-	cout << "v_arma=" << endl;
-	v_arma.print();
-	cout << "vc=" << endl;
-	vc.print();
-	cout << endl;
-    //comp_stat(vy, vc, mx);
-    //OLS_stat1.print();
-
-    /* Print residual sum of squares for the solution */
-    //print_vector_norm( "Residual sum of squares for the solution", N-n-1, 1, &newy[n+1], 1 );
-    /* Print details of QR factorization */
-    //print_matrix( "Details of QR factorization", N, n+1, &(newx[0][0]), n+1 );
-
-    // free matrix and array
-    free_matrix(newx);
-
-    return vc;
-}
-
-/* OLS by record */
-vec OLS_record(const int N, const int n, const int m, mat& mx, mat& my, vec& vx0){
-	// construct newx, newy
-    mat newx(3*N,n+1,fill::zeros);
-    vec newy(3*N,fill::zeros);
-    for (int i=0;i<m;i++){
-    	mat newx_block(N,n+1,fill::ones);
-    	newx_block.col(1) = vx0;
-    	newx_block.col(2) = mx.col(i);
-        newx.rows(i*N,(i+1)*N-1) = newx_block;
-		newy.rows(i*N,(i+1)*N-1) = my.col(i);
-    }
-
-    vec A = solve(newx,newy);
-    cout << "The coeffs are " << endl;
-    A.t().print(); 
-
-    // Compute and print the stats on OLS
-    comp_stat(newy,A,newx);
-
-    return A;
-}
-
