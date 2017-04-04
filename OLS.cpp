@@ -17,6 +17,7 @@
 
 using namespace arma;
 using namespace boost::math;
+using namespace std;
 
 void comp_stat(vec vy, vec vc, mat mx){
     // compute and print stats
@@ -42,33 +43,33 @@ void comp_stat(vec vy, vec vc, mat mx){
     // adjusted R2 stats
     double R2_adj = R2-(1-R2)*(mx.n_cols-1)/(N-mx.n_cols);
     // print out the results
-    std::cout << "Estimat   " << "Std. Error    " << "t value   " << "Pr(>|t|)" << std::endl;
+    cout << "Estimat   " << "Std. Error    " << "t value   " << "Pr(>|t|)" << endl;
     mat results(mx.n_cols,4);
     results.col(0) = vc;
     results.col(1) = se;
     results.col(2) = t;
     results.col(3) = q;
     results.print();
-    std::cout << "Residual standard error: " << sqrt(sigmasq) << " on " << N-mx.n_cols << " degrees of freedom"<< std::endl;
-    std::cout << "Multiple R-squared: " << R2 << std::endl;
-    std::cout << "Adjusted R-squared: " << R2_adj << std::endl;
+    cout << "Residual standard error: " << sqrt(sigmasq) << " on " << N-mx.n_cols << " degrees of freedom"<< endl;
+    cout << "Multiple R-squared: " << R2 << endl;
+    cout << "Adjusted R-squared: " << R2_adj << endl;
 }
 
-vec OLS_day(const int N, const int n, const int m, std::vector<std::vector<double> >& x0, std::vector<std::vector<double> >& x, std::vector<std::vector<double> >& y){
+vec OLS_day(const int N, const int n, const int m, vector<vector<double> >& x0, vector<vector<double> >& x, vector<vector<double> >& y){
     // construct newx, newy
     double **newx = matrix(N,n+1);
     double *newy = new double[N];
-    std::vector<double> newy_copy;
-    std::vector<std::vector<double> > newx_copy;
+    vector<double> newy_copy;
+    vector<vector<double> > newx_copy;
     for (int i=0;i<N;i++){
         newx[i][0] = m;
         newx[i][1] = x0[i][0]*m;
-        newx[i][2] = std::accumulate(x[i].begin(),x[i].end(),0.0);
-        newy[i] = std::accumulate(y[i].begin(),y[i].end(),0.0);
+        newx[i][2] = accumulate(x[i].begin(),x[i].end(),0.0);
+        newy[i] = accumulate(y[i].begin(),y[i].end(),0.0);
     }
     for (int i=0;i<N;i++){
         newy_copy.push_back(newy[i]);
-        std::vector<double> newx_copy_1D;
+        vector<double> newx_copy_1D;
         newx_copy_1D.push_back(newx[i][0]);
         newx_copy_1D.push_back(newx[i][1]);
         newx_copy_1D.push_back(newx[i][2]);
@@ -78,16 +79,39 @@ vec OLS_day(const int N, const int n, const int m, std::vector<std::vector<doubl
     // DGELS is general purpose and most efficient.
     // Use DGELSY to handle rank-deficient problems more realiably than DGELS.
     // Refer to http://www.netlib.org/lapack/lug/node71.html for details.
-    //TickTock T;
-    //T.tick();
+    TickTock T;
+    T.tick();
     LAPACKE_dgels(LAPACK_ROW_MAJOR, 'N', N, n+1, 1, &(newx[0][0]), n+1, &(newy[0]), 1);
-    //T.tock("DGELS costs ");
+    T.tock("DGELS costs ");
 
     // Compute and print the stats on OLS
-    mat mx;
+    //mat mx;
+    vec newy_arma = conv_to<vec>::from(newy_copy);
+    //vec2D_to_arma(newx_copy, mx); 
+	//mat mx0;
+    //vec2D_to_arma(x0, mx0); 
+	//mat my;
+    //vec2D_to_arma(y, my); 
+	//mat newx_arma(N,n+1);
+	//vec newy_arma(N);
+	//newx_arma.col(0).fill(m);
+	//newx_arma.col(1) = mx0*m;
+    //newx_arma.col(2) = sum(mx,1);
+	//newy_arma = sum(my,1);
+	//newy_arma.print(); 
+	mat newx_arma;
+	vec2D_to_arma(newx_copy,newx_arma);
+	T.tick();
+	vec v_arma = solve(newx_arma,newy_arma);
+	T.tock("Arma took");
+
     vec vc = vec(newy,n+1);
-    vec vy = conv_to<vec>::from(newy_copy);
-    vec2D_to_arma(newx_copy, mx); 
+
+	cout << "v_arma=" << endl;
+	v_arma.print();
+	cout << "vc=" << endl;
+	vc.print();
+	cout << endl;
     //comp_stat(vy, vc, mx);
     //OLS_stat1.print();
 
@@ -98,8 +122,8 @@ vec OLS_day(const int N, const int n, const int m, std::vector<std::vector<doubl
 
     // free matrix and array
     free_matrix(newx);
-    vec vcoeff = vec(newy,n+1);
-    return vcoeff;
+
+    return vc;
 }
 
 /* OLS by record */

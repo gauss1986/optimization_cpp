@@ -5,8 +5,8 @@
 using namespace std;
 using namespace arma;
 
+// conver array to arma format
 void vec2D_to_arma(const vector<vector<double> >& x, mat& mx){
-    // conver array to arma format
     int N1 = x.size();
     int N2 = x[0].size();
     mx.set_size(N1,N2);
@@ -17,8 +17,8 @@ void vec2D_to_arma(const vector<vector<double> >& x, mat& mx){
     }
 }
 
+// 2D matrix
 double **matrix(int n,int m) {
-    // 2D matrix
     double **a = new double * [n];
     a[0] = new double [n*m];
     
@@ -28,8 +28,8 @@ double **matrix(int n,int m) {
     return a;
 }
 
+// free 2D matrix
 void free_matrix(double **a) {
-    // free 2D matrix
     delete[] a[0];
     delete[] a;
 }

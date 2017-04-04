@@ -34,7 +34,7 @@ int main(int argc, char *argv[])
     int N = 0; // No. of records
     int n = 2; // No. of vars. in linear model
     int m = 0; // No. of contracts    
-    int N_bs = 500; // Bootstrap No. 
+    int N_bs = 1; // Bootstrap No. 
     double **newx;
     int *jpvt;
 
