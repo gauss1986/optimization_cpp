@@ -117,7 +117,7 @@ int main(int argc, char *argv[])
         sample = resample_vec(x0_sample,x_sample,y_sample,x0,x,y);
         resample_arma(sample,vx0_sample,mx_sample,my_sample,vx0,mx,my);
         // OLS
-        vec A_OLS = OLS(N, n, m, x0_sample, x_sample, y_sample);
+        vec A_OLS = OLS_day(N, n, m, x0_sample, x_sample, y_sample);
         mA_OLS.row(i) = A_OLS.t();
         double shp_OLS;
         vec shp_contract_OLS = comp_shp(shp_OLS, N, m, n, A_OLS, mx, my, vx0);
@@ -152,9 +152,9 @@ int main(int argc, char *argv[])
     cout << "MAX Shapre normalized" << endl;
     linearstat(mA_MAX_norm, vx0, mx, my, vshp_MAX_norm, mshp_contract_MAX_norm, N, n, m);
 
-    // OLS just once
+    // OLS_by_day just once
     cout << "OLS just once" << endl;
-    vec A_OLS_1 = OLS(N, n, m, x0, x, y);
+    vec A_OLS_1 = OLS_day(N, n, m, x0, x, y);
     double shp_OLS_1;
     vec shp_contract_OLS_1 = comp_shp(shp_OLS_1, N, m, n, A_OLS_1, mx, my, vx0);
     cout << "Coeffs are " << endl;
@@ -162,6 +162,11 @@ int main(int argc, char *argv[])
     cout << "Portfolio Shp " << shp_OLS_1 << endl;
     cout << "Contract Shp " << endl;
     shp_contract_OLS_1.t().print();
+    cout << endl;
+
+    // OLS_by_record just once
+    cout << "Naive OLS" << endl;
+    vec A_OLS_record = OLS_record(N,n,m,mx,my,vx0); 
     cout << endl;
 
     // maxsharpe just once

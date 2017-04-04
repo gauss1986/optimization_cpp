@@ -17,32 +17,32 @@
 using namespace arma;
 using namespace boost::math;
 
-class OLS_stat{
+//class OLS_stat{
     // Compute OLS stats
     // Reference 1: https://en.wikipedia.org/wiki/Simple_linear_regression#Normality_assumption 
     // Reference 2: http://stats.stackexchange.com/questions/44838/how-are-the-standard-errors-of-coefficients-calculated-in-a-regression/44841#44841
     // Reference 3: http://www.netlib.org/lapack/lawnspdf/lawn193.pdf
     // Reference 4: http://qed.econ.queensu.ca/pub/faculty/abbott/econ351/351note04.pdf
-    double sigmasq; // MSE
-    double R2; // R-square
-    double R2_adj; // adjusted R-square
-    int N; // No. of sample points in linear fit
-    mat mx;// arma format of x
-    vec vy;// arma format of y
-    vec vc;// arma format of coefficient
-    vec se;// arma format of standard error
-    vec t; // arma format of t stats
-    vec q; // arma format of probability that value with t stats is due to chance
-    public:
+//    double sigmasq; // MSE
+//    double R2; // R-square
+//    double R2_adj; // adjusted R-square
+//    int N; // No. of sample points in linear fit
+//    mat mx_;// arma format of x
+//    vec vy_;// arma format of y
+//    vec vc_;// arma format of coefficient
+//    vec se;// arma format of standard error
+//    vec t; // arma format of t stats
+//    vec q; // arma format of probability that value with t stats is due to chance
+ //   public:
         // convert x,y and coeff to arma format to prepare for stats calculation
-        void conv_form(const int n, const std::vector<std::vector<double> >& x, const std::vector<double>& y, const double* coeff);
+        //void conv_form(const int n, const std::vector<std::vector<double> >& x, const std::vector<double>& y, const double* coeff);
         // compute stats of the coeffs
-        void comp_stat();
+//        void comp_stat(vec vy, vec vc, mat mx);
         // print out the stats
-        void print();
-};
+//        void print();
+//};
 
-void OLS_stat::conv_form(const int n, const std::vector<std::vector<double> >& x, const std::vector<double>& y, const double* coeff){
+void convert_to_arma(const int n, const std::vector<std::vector<double> >& x, const std::vector<double>& y, const double* coeff, int N, vec& vy, vec& vc, mat& mx){
     N = x.size();
     // convert vectors and arrays to arma mat and vec 
     vy = conv_to<vec>::from(y);
@@ -55,30 +55,29 @@ void OLS_stat::conv_form(const int n, const std::vector<std::vector<double> >& x
     vc = vec(coeff,n+1);
 }
 
-void OLS_stat::comp_stat(){
+void comp_stat(vec vy, vec vc, mat mx){
+    int N = vy.n_elem;
     // sigmasq
     vec vy_copy(vy);
     vy = vy-mx*vc;
     vy = vy%vy;
-    sigmasq = sum(vy)/(N-mx.n_cols); 
+    double sigmasq = sum(vy)/(N-mx.n_cols); 
     // standard error
-    se.set_size(mx.n_cols);
+    vec se(mx.n_cols);
     se = sqrt(diagvec(sigmasq*(mx.t()*mx).i())); 
     // t stats
-    t.set_size(mx.n_cols);
+    vec t(mx.n_cols);
     t = vc/se; 
     students_t dist(N-1);
-    q.set_size(mx.n_cols);
+    vec q(mx.n_cols);
     for (int i=0;i<mx.n_cols;i++){
         q(i) = 2*cdf(complement(dist, fabs(t(i))));
     }
     // R2 stats
-    R2 = 1-sum(vy)/var(vy_copy)/(N-1);
+    double R2 = 1-sum(vy)/var(vy_copy)/(N-1);
     // adjusted R2 stats
-    R2_adj = R2-(1-R2)*(mx.n_cols-1)/(N-mx.n_cols);
-}
-
-void OLS_stat::print(){
+    double R2_adj = R2-(1-R2)*(mx.n_cols-1)/(N-mx.n_cols);
+    // print out the results
     std::cout << "Estimat   " << "Std. Error    " << "t value   " << "Pr(>|t|)" << std::endl;
     mat results(mx.n_cols,4);
     results.col(0) = vc;
@@ -91,7 +90,7 @@ void OLS_stat::print(){
     std::cout << "Adjusted R-squared: " << R2_adj << std::endl;
 }
 
-vec OLS(const int N, const int n, const int m, std::vector<std::vector<double> >& x0, std::vector<std::vector<double> >& x, std::vector<std::vector<double> >& y){
+vec OLS_day(const int N, const int n, const int m, std::vector<std::vector<double> >& x0, std::vector<std::vector<double> >& x, std::vector<std::vector<double> >& y){
     // construct newx, newy
     double **newx = matrix(N,n+1);
     double *newy = new double[N];
@@ -110,10 +109,7 @@ vec OLS(const int N, const int n, const int m, std::vector<std::vector<double> >
         newx_copy_1D.push_back(newx[i][1]);
         newx_copy_1D.push_back(newx[i][2]);
         newx_copy.push_back(newx_copy_1D);
-        //std::cout << "newx=" << newx[i][0] << "," << newx[i][1] << "," << newx[i][2] << ". newy=" << newy[i] << "." << std::endl;
     }
-    //printdata_2D<double **>(newx,"First 10 rows in newx are:",10,3);
-    //printdata_1D<double *>(newy,"First 10 entries in newy are:",10);
 
     // DGELS is general purpose and most efficient.
     // Use DGELSY to handle rank-deficient problems more realiably than DGELS.
@@ -124,10 +120,12 @@ vec OLS(const int N, const int n, const int m, std::vector<std::vector<double> >
     //T.tock("DGELS costs ");
 
     // Compute and print the stats on OLS
-    OLS_stat OLS_stat1;
-    OLS_stat1.conv_form(n, newx_copy, newy_copy, newy); 
-    OLS_stat1.comp_stat();
-    OLS_stat1.print();
+    vec vy;
+    vec vc;
+    mat mx;
+    convert_to_arma(n, newx_copy, newy_copy, newy, N, vy, vc, mx); 
+    comp_stat(vy, vc, mx);
+    //OLS_stat1.print();
 
     /* Print residual sum of squares for the solution */
     //print_vector_norm( "Residual sum of squares for the solution", N-n-1, 1, &newy[n+1], 1 );
@@ -138,6 +136,37 @@ vec OLS(const int N, const int n, const int m, std::vector<std::vector<double> >
     free_matrix(newx);
     vec vcoeff = vec(newy,n+1);
     return vcoeff;
+}
+
+vec OLS_record(const int N, const int n, const int m, mat& mx, mat& my, vec& vx0){
+    // construct newx, newy
+    mat newx(3*N,n+1,fill::zeros);
+    vec newy(3*N,fill::zeros);
+    for (int i=0;i<m;i++){
+    	mat newx_block(N,n+1,fill::ones);
+    	newx_block.col(1) = vx0;
+    	newx_block.col(2) = mx.col(i);
+        newx.rows(i*N,(i+1)*N-1) = newx_block;
+	newy.rows(i*N,(i+1)*N-1) = my.col(i);
+    }
+
+    vec A = solve(newx,newy);
+    cout << "The coeffs are " << endl;
+    A.t().print(); 
+
+    // Compute and print the stats on OLS
+    //OLS_stat OLS_stat1;
+    //OLS_stat1.conv_form(n, newx_copy, newy_copy, newy); 
+    comp_stat(newy,A,newx);
+    //OLS_stat1.print();
+
+    /* Print residual sum of squares for the solution */
+    //print_vector_norm( "Residual sum of squares for the solution", N-n-1, 1, &newy[n+1], 1 );
+    /* Print details of QR factorization */
+    //print_matrix( "Details of QR factorization", N, n+1, &(newx[0][0]), n+1 );
+
+    // free matrix and array
+    return A;
 }
 
 double **matrix(int n,int m) {
