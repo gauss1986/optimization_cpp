@@ -28,6 +28,9 @@ using namespace boost::math;
 
 int main(int argc, char *argv[])
 {
+	int n = 21;
+	int n0 = 13;
+
     // read data
     string f_x0("data_example_boot.txt");
 	char sep = ' ';
@@ -42,12 +45,28 @@ int main(int argc, char *argv[])
 	// parsing data
 	ivec date = conv_to<ivec>::from(D);
 	vec y = raw.col(0);
-	mat x = raw.cols(1,21);
-	mat x0 = raw.cols(22,34); 
+	mat x = raw.cols(1,n);
+	mat x0 = raw.cols(n+1,n+n0); 
 	cout << "Size of x=21," << "x0=13" << endl;
 
+	// find unique dates
 	uvec ind = find_unique(date);
-	cout << "There are "<< ind.n_elem << " unique days starting " << min(date(ind)) << " ending " << max(date(ind)) << endl;;
+	int N = ind.n_elem;
+	cout << "There are "<< N << " unique days starting " << min(date(ind)) << " ending " << max(date(ind)) << endl;;
+
+	// parsing data w.r.t. dates
+	uvec c_D(N,fill::zeros); // contracts on record per day
+	mat newx(N,n+n0);
+	vec newy(N);
+	for (int i=0;i<N;i++){
+		uvec m_i = find(date==date(ind(i)));	
+		c_D(i) = m_i.n_elem;
+		// set value for newx & newy
+		newy(i) = c_D(i);
+	    vec temp(n,fill::zeros);
+		for (int j=0;j<n;j++) 	
+	}
+	cout << "Min contracts per day " << min(c_D) << ", max " << max(c_D) << ", mean " << mean(c_D) << endl;;
 
 	return 1;
 }
