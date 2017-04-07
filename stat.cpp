@@ -13,6 +13,7 @@
 #include <boost/accumulators/statistics/median.hpp>
 #include <boost/accumulators/statistics/skewness.hpp>
 #include <boost/accumulators/statistics/kurtosis.hpp>
+#include <boost/math/distributions/students_t.hpp>
 #include <stat.h>
 #include <txtIO.h>
 #include "armadillo"
@@ -20,6 +21,7 @@
 using namespace arma;
 using namespace std;
 using namespace boost::accumulators;
+using namespace boost::math;
 
 class stat{
     double min, max, mean, median, std, skew, kurt;
@@ -131,4 +133,53 @@ vec comp_shp(double& shp, const int n, vec& A, mat& mx, mat& my, vec& vx0){
     shp = arma::mean(pnl)/stddev(pnl);
 
     return shp_contract;
+}
+
+void linearstat(mat mA, vec vx0, mat mx, mat my, vec vshp, mat mshp_contract, const int N, const int n, const int m){
+    // compute statistics
+    vec tstat(n+1);
+    vec q(n+1);
+    for (int i=0;i<n+1;i++){
+        tstat(i) = arma::mean(mA.col(i))/stddev(mA.col(i));
+    }
+    students_t dist(N-1); // double check if it is N_bs or N
+    for (int i=0;i<n+1;i++){
+        q(i) = 2*cdf(complement(dist, fabs(tstat(i))));
+    }
+    vec sigmasq(m);
+    vec R2(m);
+    vec R2_adj(m);
+
+    for (int i=0;i<m;i++){
+    	// sigmasq
+    	vec vy = my.col(i);
+    	vec vy_copy(vy);
+	mat mx_sym(N,n+1,fill::ones);
+	mx_sym.col(1) = vx0;
+	mx_sym.col(2) = mx.col(i);
+    	vy = vy-mx_sym*arma::mean(mA).t();
+    	vy = vy%vy;
+    	sigmasq(i) = arma::sum(vy)/(N-n-1); 
+    	// R2 stats
+    	R2(i) = 1-arma::sum(vy)/var(vy_copy)/(N-1);
+    	// adjusted R2 stats
+    	R2_adj(i) = R2(i)-(1-R2(i))*n/(N-n-1);
+    }
+
+    // report statistics
+    cout << " Estimate (mean) " << " t value " << " Pr(>|t|)"<<endl;
+    mat report(n+1,3);
+    report.col(0) = arma::mean(mA).t();
+    report.col(1) = tstat;
+    report.col(2) = q;
+    report.print();
+    cout << "Portfolio Shp " << arma::mean(vshp) << endl;
+    cout << "Contract Shp " << endl;
+    arma::mean(mshp_contract).print();
+    for (int i=0;i<m;i++){
+        cout << "Sym " << i << endl;
+    	cout << "Residual standard error=" << sigmasq(i) << " on " << N-n-1 << " dof." << endl;
+    	cout << "R2=" << R2 (i)<< ", Adj R2=" << R2_adj(i) << endl;
+    }
+    cout << endl;
 }
