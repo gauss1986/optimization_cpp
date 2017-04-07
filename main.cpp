@@ -45,13 +45,14 @@ int main(int argc, char *argv[])
     string f_x("x.csv");
     string f_y("y.csv");
 
+	char sep = ',';
     cout << "x0" <<  endl;
-    mat mx0 = readtxt(f_x0,N_x0_row,N_x0_col);
+    mat mx0 = readtxt(f_x0,N_x0_row,N_x0_col,sep);
 	vec vx0 = conv_to<vec>::from(mx0);
     cout << "x" <<  endl;
-    mat mx = readtxt(f_x,N_x_row,N_x_col);
+    mat mx = readtxt(f_x,N_x_row,N_x_col,sep);
     cout << "y" <<  endl;
-    mat my = readtxt(f_y,N_y_row,N_y_col);
+    mat my = readtxt(f_y,N_y_row,N_y_col,sep);
     cout <<  endl;
 
     // sanity check

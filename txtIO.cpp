@@ -11,7 +11,7 @@
 using namespace std;
 
 /* read text file into 2D vector and feedback N_row/N_co */
-mat readtxt(const string& filename, int& N_row, int& N_col){
+mat readtxt(const string& filename, int& N_row, int& N_col, const char sep){
     // open and check file
     ifstream f;
     f.open(filename.c_str());
@@ -29,7 +29,7 @@ mat readtxt(const string& filename, int& N_row, int& N_col){
         vector<double> row;
         string temp2;
         int col=0;
-        while(getline(buffer,temp2,',')){
+        while(getline(buffer,temp2,sep)){
             row.push_back(atof(temp2.c_str()));
             col++;
         }
