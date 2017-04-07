@@ -36,4 +36,10 @@ int main(int argc, char *argv[])
     string f_x0("data_example_boot.txt");
 
 	char sep = ' ';
+	int N_row,N_col;
     mat raw = readtxt(f_x0,N_row,N_col,sep);
+
+	
+
+	return 1;
+}

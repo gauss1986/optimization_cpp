@@ -5,6 +5,8 @@ CXX = gcc
 
 all: main
 
+real: real
+
 ticktock.o: ticktock.cc
 	$(CXX) -c $(CXXFLAGS) -I . -o ticktock.o ticktock.cc
 
@@ -26,8 +28,14 @@ maxshp.o: maxshp.cpp
 main.o: main.cpp
 	$(CXX) -c $(CXXFLAGS) -I . -o main.o main.cpp
 
+main_real.o: main_real.cpp
+	$(CXX) -c $(CXXFLAGS) -I . -o main_real.o main_real.cpp
+
 main: ticktock.o misc.o txtIO.o stat.o OLS.o maxshp.o main.o
 	$(CXX) $(LDFLAGS) -o main ticktock.o misc.o txtIO.o stat.o OLS.o maxshp.o main.o $(LDLIBS)
 
+real: ticktock.o misc.o txtIO.o stat.o OLS.o maxshp.o main_real.o
+	$(CXX) $(LDFLAGS) -o real ticktock.o misc.o txtIO.o stat.o OLS.o maxshp.o main_real.o $(LDLIBS)
+
 clean:
-	rm -f main ticktock.o misc.o main.o txtIO.o stat.o OLS.o maxshp.o 
+	rm -f main real ticktock.o misc.o main.o main_real.o txtIO.o stat.o OLS.o maxshp.o 

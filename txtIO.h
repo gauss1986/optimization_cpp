@@ -8,6 +8,8 @@ using namespace std;
 mat readtxt(const string& file_name,int& N_row, int& N_col, const char sep);
 vector<vector<double> > reorgdata(const vector<vector<double> >& data, const int N_row, const int N_col);
 void printdata(const vector<vector<double> >& data, int N_row, int N_col);
+vector<vector<double> > read2Dvec(ifstream& f, const char sep, int& N_row, int& N_col);
+vector<vector<double> > read2Dvec_real(ifstream& f, const char sep, int& N_row, int& N_col);
 template <class T> void printdata_2D(T& data, char* desc, int N_row, int N_col){
     // output content 
     cout << "\n" << desc << endl;
