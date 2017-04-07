@@ -19,7 +19,32 @@ mat readtxt(const string& filename, int& N_row, int& N_col, const char sep){
         cout << "Cannot open input file "<< filename.c_str() << ".\n";
     }
 
-	vector<vector<double> > rows = read2Dvec_real(f, sep, N_row, N_col);
+	vector<vector<double> > rows = read2Dvec(f, sep, N_row, N_col);
+
+    // output size of data
+     cout<< "Size of "<<filename.c_str()<<" is "<<N_row<<" rows, "<<N_col<< " cols.\n";
+
+	// print stats
+    // vector< vector<double> > stat = simplestat(rows, N_row, N_col);
+
+    // covert x0,x,y to arma format
+	mat m;
+    vec2D_to_arma(rows,m);
+
+    cout << "Size of m is " << m.n_rows	<< "x" << m.n_cols << endl;
+
+	return m;
+}
+
+mat readtxt_real(const string& filename, int& N_row, int& N_col, const char sep, vector<int>& date, vector<string>& col_names, vector<string>& contracts){
+    // open and check file
+    ifstream f;
+    f.open(filename.c_str());
+    if(!f) {
+        cout << "Cannot open input file "<< filename.c_str() << ".\n";
+    }
+
+	vector<vector<double> > rows = read2Dvec_real(f, sep, N_row, N_col, date, col_names, contracts);
 
     // output size of data
      cout<< "Size of "<<filename.c_str()<<" is "<<N_row<<" rows, "<<N_col<< " cols.\n";
@@ -71,11 +96,9 @@ vector<vector<double> > read2Dvec(ifstream& f, const char sep, int& N_row, int& 
 }
 
 /* read 2D vector from file real*/ 
-vector<vector<double> > read2Dvec_real(ifstream& f, const char sep, int& N_row, int& N_col){
+vector<vector<double> > read2Dvec_real(ifstream& f, const char sep, int& N_row, int& N_col, vector<int>& date, vector<string>& col_names, vector<string>& contracts){
     vector<vector<double> > rows; 
     vector<int> col_per_row;
-	vector<string> col_names;
-	vector<string> contracts;
 
     string temp;
     N_row = 0;
@@ -85,7 +108,7 @@ vector<vector<double> > read2Dvec_real(ifstream& f, const char sep, int& N_row, 
         string temp2;
         int col=0;
         while(getline(buffer,temp2,sep)){
-            if (N_row > 0 && col > 0){
+            if (N_row > 0 && col > 1){
 				row.push_back(atof(temp2.c_str()));
 			}
 			else{
@@ -93,7 +116,12 @@ vector<vector<double> > read2Dvec_real(ifstream& f, const char sep, int& N_row, 
 					col_names.push_back(temp2);
 				}
 				else{
-					contracts.push_back(temp2); 
+					if (col==0){
+						contracts.push_back(temp2); 
+					}
+					else{
+						date.push_back(atoi(temp2.c_str()));
+					}
 				}
 			}
             col++;
@@ -116,12 +144,8 @@ vector<vector<double> > read2Dvec_real(ifstream& f, const char sep, int& N_row, 
         cout<<"The No. of Col. on each row is NOT the same.\n";
     }
 
-	cout << "Col names" << endl;
-	for (int i=0;i<N_col;i++) cout << col_names[i]<< " ";
-	cout << endl;
-	//cout << "Contracts" << endl;
-	//for (int i=0;i<N_row-1;i++) cout << contracts[i];
-	//cout << endl;
+	N_row = N_row-1;
+	N_col = N_col-2;
 
 	return rows;
 }

@@ -31,15 +31,23 @@ using namespace boost::math;
 
 int main(int argc, char *argv[])
 {
-    // initialize variables
-
+    // read data
     string f_x0("data_example_boot.txt");
-
 	char sep = ' ';
 	int N_row,N_col;
-    mat raw = readtxt(f_x0,N_row,N_col,sep);
+	vector<string> col_names; // column names
+	vector<string> contracts; // contract names on each row
+	vector<int> D;
+    mat raw = readtxt_real(f_x0,N_row,N_col,sep,D,col_names,contracts);
+	//cout << "N_row=" << N_row << ",N_col=" << N_col << endl;
 
+	// parsing data
+	ivec date = conv_to<ivec>::from(D);
+	vec y = raw.col(0);
+	mat x = raw.cols(1,21);
+	mat x0 = raw.cols(22,34); 
 	
+	date.print();
 
 	return 1;
 }
