@@ -4,12 +4,14 @@
 #include <vector>
 #include <string>
 #include <stdlib.h>
+#include <stat.h>
 #include <txtIO.h>
+#include <misc.h>
 
 using namespace std;
 
 /* read text file into 2D vector and feedback N_row/N_co */
-vector<vector<double> > readtxt(const string& filename, int& N_row, int& N_col){
+mat readtxt(const string& filename, int& N_row, int& N_col){
     // open and check file
     ifstream f;
     f.open(filename.c_str());
@@ -50,10 +52,14 @@ vector<vector<double> > readtxt(const string& filename, int& N_row, int& N_col){
     // output size of data
      cout<< "Size of "<<filename.c_str()<<" is "<<N_row<<" rows, "<<N_col<< " cols.\n";
 
-    //printdata(rows,10,N_col);
+	// print stats
+    vector< vector<double> > stat = simplestat(rows, N_row, N_col);
 
-    // return data
-    return rows;        
+    // covert x0,x,y to arma format
+	mat m;
+    vec2D_to_arma(rows,m);
+
+	return m;
 }
 
 vector<vector<double> > reorgdata(const vector<vector<double> >& data, const int N_row, const int N_col){

@@ -40,15 +40,20 @@ int main(int argc, char *argv[])
     int *jpvt;
 
     // load and check files
-    int N_x0_row,N_x0_col;
-    int N_x_row,N_x_col;
-    int N_y_row,N_y_col;
+    int N_x0_row,N_x0_col,N_x_row,N_x_col,N_y_row,N_y_col;
     string f_x0("x0.csv");
     string f_x("x.csv");
     string f_y("y.csv");
-    vector< vector<double> >  x0 = readtxt(f_x0,N_x0_row,N_x0_col);
-    vector< vector<double> >  x = readtxt(f_x,N_x_row,N_x_col);
-    vector< vector<double> >  y = readtxt(f_y,N_y_row,N_y_col);
+
+    cout << "x0" <<  endl;
+    mat mx0 = readtxt(f_x0,N_x0_row,N_x0_col);
+	vec vx0 = conv_to<vec>::from(mx0);
+    cout << "x" <<  endl;
+    mat mx = readtxt(f_x,N_x_row,N_x_col);
+    cout << "y" <<  endl;
+    mat my = readtxt(f_y,N_y_row,N_y_col);
+    cout <<  endl;
+
     // sanity check
     if ((N_x0_row != N_x_row) | (N_x_row != N_y_row)){
         cout << "The No. or records in x0, x and y are not consistent!\n";
@@ -62,36 +67,6 @@ int main(int argc, char *argv[])
     else{
         m = N_x_col;
     }
-
-    // compute and output the statistics of inputs
-    //cout << "x0" <<  endl;
-    vector< vector<double> > x0_col = reorgdata(x0,N_x0_row,N_x0_col);
-    vector< vector<double> > x0_stat = simplestat(x0_col, 1);
-    //cout << "x" <<  endl;
-    vector< vector<double> > x_col = reorgdata(x,N_x_row,N_x_col);
-    vector< vector<double> > x_stat = simplestat(x_col, m);
-    //cout << "y" <<  endl;
-    vector< vector<double> > y_col = reorgdata(y,N_y_row,N_y_col);
-    vector< vector<double> > y_stat = simplestat(y_col, m);
-    cout <<  endl;
-
-    // covert x0,x,y to arma format
-    //for (int i=0;i<N;i++){
-    //    for (int j=0;j<m;j++){
-    //        mx(i,j) = x[i][j];
-    //        my(i,j) = y[i][j];
-    //    }
-    //    vx0(i) = x0[i][0];
-    //}
-	// convert x0, x, y to arma format
-	mat my, mx, mx0;
-    vec2D_to_arma(y,my);
-	vec2D_to_arma(x,mx);
-	vec2D_to_arma(x0,mx0);
-    vec vx0 = conv_to<vec>::from(mx0);
-	cout << "mx size=" << mx.n_rows << "x" << mx.n_cols << endl; 
-	cout << "my size=" << my.n_rows << "x" << my.n_cols << endl; 
-	cout << "vx0 size=" << vx0.n_elem << endl; 
 
     TickTock T;
     mat mA_OLS(N_bs,n+1);

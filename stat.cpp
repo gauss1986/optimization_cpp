@@ -14,6 +14,7 @@
 #include <boost/accumulators/statistics/skewness.hpp>
 #include <boost/accumulators/statistics/kurtosis.hpp>
 #include <stat.h>
+#include <txtIO.h>
 #include "armadillo"
 
 using namespace arma;
@@ -75,14 +76,15 @@ void stat::report (){
     cout << endl;
 }
 
-vector<vector<double> > simplestat(const vector<vector<double> >& data, int N){
+vector<vector<double> > simplestat(const vector<vector<double> >& data, int n_row, int n_col){
     // compute and output mean,std,skew and kurt on each dim
     vector<vector<double> > stat_2D;
-    for (int i=0;i<N;i++){
+    vector<vector<double> > data_col = reorgdata(data,n_row,n_col);
+    for (int i=0;i< n_col;i++){
         stat stat_1D;
-        vector<double> stat_1D_val = stat_1D.compute(data[i]);
+        vector<double> stat_1D_val = stat_1D.compute(data_col[i]);
 
-        //cout << " DOF " << i << endl;
+        cout << " DOF " << i << endl;
         stat_1D.report();
 
         stat_2D.push_back(stat_1D_val); // store stat_1D into stat
