@@ -22,9 +22,6 @@
 // The OLS routine is calling mkl_lapack package
 // The statistics is calling BOOST package
 
-/* Auxiliary routines prototypes */
-void linearstat(mat mA, vec vx0, mat mx, mat my, vec vshp, mat mshp_contract, const int N, const int n, const int m);
-
 using namespace arma;
 using namespace std;
 using namespace boost::math;
@@ -40,14 +37,17 @@ int main(int argc, char *argv[])
 	vector<int> D;
     mat raw = readtxt_real(f_x0,N_row,N_col,sep,D,col_names,contracts);
 	//cout << "N_row=" << N_row << ",N_col=" << N_col << endl;
+	cout << "There are " << N_row << " records in total." << endl;
 
 	// parsing data
 	ivec date = conv_to<ivec>::from(D);
 	vec y = raw.col(0);
 	mat x = raw.cols(1,21);
 	mat x0 = raw.cols(22,34); 
-	
-	date.print();
+	cout << "Size of x=21," << "x0=13" << endl;
+
+	uvec ind = find_unique(date);
+	cout << "There are "<< ind.n_elem << " unique days starting " << min(date(ind)) << " ending " << max(date(ind)) << endl;;
 
 	return 1;
 }

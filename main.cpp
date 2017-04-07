@@ -115,11 +115,11 @@ int main(int argc, char *argv[])
     cout << "Statistics: "<< endl;
 
     cout << "OLS" << endl;
-    linearstat(mA_OLS, vx0, mx, my, vshp_OLS, mshp_contract_OLS, N, n, m);
+    bsstat(mA_OLS, vx0, mx, my, vshp_OLS, mshp_contract_OLS, N, n, m);
     cout << "MAX Sharpe" << endl;
-    linearstat(mA_MAX, vx0, mx, my, vshp_MAX, mshp_contract_MAX, N, n, m);
+    bsstat(mA_MAX, vx0, mx, my, vshp_MAX, mshp_contract_MAX, N, n, m);
     cout << "MAX Shapre normalized" << endl;
-    linearstat(mA_MAX_norm, vx0, mx, my, vshp_MAX_norm, mshp_contract_MAX_norm, N, n, m);
+    bsstat(mA_MAX_norm, vx0, mx, my, vshp_MAX_norm, mshp_contract_MAX_norm, N, n, m);
 
     // OLS_by_day just once
     cout << "OLS just once" << endl;

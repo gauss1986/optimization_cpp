@@ -58,6 +58,9 @@ mat readtxt_real(const string& filename, int& N_row, int& N_col, const char sep,
 
     cout << "Size of m is " << m.n_rows	<< "x" << m.n_cols << endl;
 
+	N_row = N_row-1;
+	N_col = N_col-2;
+
 	return m;
 }
 
@@ -143,9 +146,6 @@ vector<vector<double> > read2Dvec_real(ifstream& f, const char sep, int& N_row, 
     if (i!=N_row-1){
         cout<<"The No. of Col. on each row is NOT the same.\n";
     }
-
-	N_row = N_row-1;
-	N_col = N_col-2;
 
 	return rows;
 }

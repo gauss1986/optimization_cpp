@@ -5,8 +5,6 @@ CXX = gcc
 
 all: main
 
-real: real
-
 ticktock.o: ticktock.cc
 	$(CXX) -c $(CXXFLAGS) -I . -o ticktock.o ticktock.cc
 

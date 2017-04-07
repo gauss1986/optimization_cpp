@@ -135,7 +135,7 @@ vec comp_shp(double& shp, const int n, vec& A, mat& mx, mat& my, vec& vx0){
     return shp_contract;
 }
 
-void linearstat(mat mA, vec vx0, mat mx, mat my, vec vshp, mat mshp_contract, const int N, const int n, const int m){
+void bsstat(mat mA, vec vx0, mat mx, mat my, vec vshp, mat mshp_contract, const int N, const int n, const int m){
     // compute statistics
     vec tstat(n+1);
     vec q(n+1);
