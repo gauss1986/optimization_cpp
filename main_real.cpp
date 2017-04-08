@@ -56,17 +56,29 @@ int main(int argc, char *argv[])
 
 	// parsing data w.r.t. dates
 	uvec c_D(N,fill::zeros); // contracts on record per day
-	mat newx(N,n+n0);
+	mat newx(N,1+n+n0);
 	vec newy(N);
+	//vec diff = zeros(N);
 	for (int i=0;i<N;i++){
+		// sanity check x0 values on the same day, should be identical for different contracts
+		if (as_scalar(max(max(x0.rows(m_i))-min(x0.rows(m_i)),1)) > 1e-5) 
+			cout << "x0 values on day " << date(ind(i)) << " are not identical for different contracts!" << endl;	
+		// index for records on the same day
 		uvec m_i = find(date==date(ind(i)));	
 		c_D(i) = m_i.n_elem;
-		// set value for newx & newy
-		newy(i) = c_D(i);
-	    vec temp(n,fill::zeros);
-		for (int j=0;j<n;j++) 	
+		// set value of newy
+		newy(i) = sum(y(m_i));
+		// set value of newx
+		newx(i,0) = c_D(i);
+		newx(i,span(1,n)) = sum(x.rows(m_i));
+		newx(i,span(n+1,n+n0)) = sum(x0.rows(m_i));
 	}
+
+	vec c_OLS = solve(newx,newy);
+
 	cout << "Min contracts per day " << min(c_D) << ", max " << max(c_D) << ", mean " << mean(c_D) << endl;;
+	cout << "c_OLS=" << endl;
+	c_OLS.print();
 
 	return 1;
 }
