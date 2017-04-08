@@ -100,7 +100,7 @@ int main(int argc, char *argv[])
         mshp_contract_MAX.row(i) = shp_contract_MAX.t();
         vshp_MAX(i) = shp_MAX;
 		// normalize maxsharpe coeffs w.r.t. OLS coeffs.
-		mat A(m,2,fill::ones);
+		mat A(n+1,2,fill::ones);
 		A.col(1) = A_MAX;
 		vec c = solve(A,A_OLS);
 		c(0) = 0;

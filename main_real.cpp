@@ -91,10 +91,25 @@ int main(int argc, char *argv[])
 	
 	vec c_MS = cov(xy_MS).i()*mean(xy_MS).t();
 
-	cout << "c_OLS=" << endl;
-	c_OLS.t().print();
-	cout << "c_MS=" << endl;
-	c_MS.t().print();
+	mat A(1+n+n0,2,fill::ones);
+	A.col(1) = c_MS;
+	vec c_norm = solve(A,c_OLS);
+	vec c_MS_norm = c_MS*c_norm(1); 
+	vec c_MS_norm2 = A*c_norm; 
+
+	cout << endl;
+	cout << "Results:" << endl;
+	cout << "c_OLS	" << "c_MS	"<< "c_MS_norm	" << "c_MS_norm2"<< endl;
+	cout << "intersection" << endl;
+	cout << c_OLS(0) << "	" << c_MS(0) << "	" << c_MS_norm(0) << "	" <<  c_MS_norm2(0) << endl; 
+
+	cout << "c_x" << endl;
+	mat c_x = join_horiz(join_horiz(join_horiz(c_OLS(span(1,n)),c_MS(span(1,n))),c_MS_norm(span(1,n))),c_MS_norm2(span(1,n)));
+	c_x.print();
+
+	cout << "c_x0" << endl;
+	mat c_x0 = join_horiz(join_horiz(join_horiz(c_OLS(span(n+1,n+n0)),c_MS(span(n+1,n+n0))),c_MS_norm(span(n+1,n+n0))),c_MS_norm2(span(n+1,n+n0)));
+	c_x0.print();
 
 	double shp_D_OLS;
 	double shp_D_MS;
