@@ -113,7 +113,7 @@ void resample_arma(vec& vx0_sample, mat& mx_sample, mat& my_sample, vec& vx0, ma
     }
 }
 
-vec comp_shp(double& shp, const int n, vec& A, mat& mx, mat& my, vec& vx0){
+vec comp_shp(double& shp, const int n, const vec& A, const mat& mx, const mat& my, const vec& vx0){
     // compute the sharpe ratio
 	int m = my.n_cols; // No. of contracts
 	int N = vx0.n_elem; // No. of days
@@ -133,6 +133,19 @@ vec comp_shp(double& shp, const int n, vec& A, mat& mx, mat& my, vec& vx0){
     shp = arma::mean(pnl)/stddev(pnl);
 
     return shp_contract;
+}
+
+void comp_shp_real(double& shp_D, const vec& A, const mat& x, const mat& x0, const vec& y, const ivec& date, const uvec& ind, const int N){
+	// compute day shp
+	vec p = y%(join_horiz(ones(y.n_elem),join_horiz(x,x0))*A);	
+	vec p_D(N); 
+	for (int i=0;i<N;i++){
+		// index for records on the same day
+		uvec m_i = find(date==date(ind(i)));	
+		// aggregrate profit on days
+		p_D(i) = arma::sum(p(m_i));
+	}
+	shp_D = arma::mean(p_D)/stddev(p_D);	
 }
 
 void bsstat(mat mA, vec vx0, mat mx, mat my, vec vshp, mat mshp_contract, const int N, const int n, const int m){

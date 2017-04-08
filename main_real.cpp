@@ -92,9 +92,16 @@ int main(int argc, char *argv[])
 	vec c_MS = cov(xy_MS).i()*mean(xy_MS).t();
 
 	cout << "c_OLS=" << endl;
-	c_OLS.print();
+	c_OLS.t().print();
 	cout << "c_MS=" << endl;
-	c_MS.print();
+	c_MS.t().print();
+
+	double shp_D_OLS;
+	double shp_D_MS;
+	comp_shp_real(shp_D_OLS, c_OLS, x, x0, y, date, ind, N);
+	comp_shp_real(shp_D_MS, c_MS, x, x0, y, date, ind, N);
+	cout << "OLS shp=" << shp_D_OLS << endl;
+	cout << "MS shp=" << shp_D_MS << endl;
 
 	return 1;
 }
