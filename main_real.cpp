@@ -12,6 +12,7 @@
 #include <OLS.h>
 #include <maxshp.h>
 #include <misc.h>
+#include <iterator>
 #include <ticktock.h>
 #include "armadillo"
 #include <boost/math/distributions/students_t.hpp>
@@ -26,10 +27,19 @@ using namespace arma;
 using namespace std;
 using namespace boost::math;
 
+template<typename T, size_t N>
+T * end(T (&ra)[N]){
+	return ra+N;
+}
+
 int main(int argc, char *argv[])
 {
 	int n = 21;
 	int n0 = 13;
+	const char *x_names[] = {"0.1","H1"};
+	vector<string> x_select(x_names,end(x_names));	
+	const char *x0_names[] = {"SP.CC.1","TY.CC.1"};
+	vector<string> x0_select(x0_names,end(x0_names));	
 
     // read data
     string f_x0("data_example_boot.txt");
@@ -39,8 +49,29 @@ int main(int argc, char *argv[])
 	vector<string> contracts; // contract names on each row
 	vector<int> D;
     mat raw = readtxt_real(f_x0,N_row,N_col,sep,D,col_names,contracts);
-	//cout << "N_row=" << N_row << ",N_col=" << N_col << endl;
+	// print out some statistics of the data
+	cout << "There are " << col_names.size()-3 << " number of variables." << endl;
+	cout << "The variables are ";
+	vector<string>::iterator it;
+	for (it=col_names.begin()+3;it!=col_names.end();++it)
+		cout << " " << *it;
+	cout << endl;
 	cout << "There are " << N_row << " records in total." << endl;
+	it = unique(contracts.begin(),contracts.end());
+	contracts.erase(it, contracts.end());
+	cout << "There are in total " << contracts.size() << " contracts" << endl;
+	cout << "The contracts are ";
+	for (it=contracts.begin();it!=contracts.end();++it)
+		cout << " " << *it;
+	cout << endl;
+	cout << "The x features we care about: ";
+	for (it=x_select.begin();it!=x_select.end();++it)
+		cout << " " << *it;
+	cout << endl;
+	cout << "The x0 features we care about: ";
+	for (it=x0_select.begin();it!=x0_select.end();++it)
+		cout << " " << *it;
+	cout << endl;
 
 	// parsing data
 	ivec date = conv_to<ivec>::from(D);
@@ -48,6 +79,8 @@ int main(int argc, char *argv[])
 	mat x = raw.cols(1,n);
 	mat x0 = raw.cols(n+1,n+n0); 
 	cout << "Size of x=21," << "x0=13" << endl;
+	// select features from x and x0
+
 
 	// find unique dates
 	uvec ind = find_unique(date);
