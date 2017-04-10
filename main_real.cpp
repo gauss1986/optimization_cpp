@@ -36,7 +36,7 @@ int main(int argc, char *argv[])
 {
 	int n = 21;
 	int n0 = 13;
-	const char *x_names[] = {"0.1","H1"};
+	const char *x_names[] = {"O.1","H.1"};
 	vector<string> x_select(x_names,end(x_names));	
 	const char *x0_names[] = {"SP.CC.1","TY.CC.1"};
 	vector<string> x0_select(x0_names,end(x0_names));	
@@ -64,11 +64,11 @@ int main(int argc, char *argv[])
 	for (it=contracts.begin();it!=contracts.end();++it)
 		cout << " " << *it;
 	cout << endl;
-	cout << "The x features we care about: ";
+	cout << "Selected x features: ";
 	for (it=x_select.begin();it!=x_select.end();++it)
 		cout << " " << *it;
 	cout << endl;
-	cout << "The x0 features we care about: ";
+	cout << "Selected x0 features: ";
 	for (it=x0_select.begin();it!=x0_select.end();++it)
 		cout << " " << *it;
 	cout << endl;
@@ -76,11 +76,24 @@ int main(int argc, char *argv[])
 	// parsing data
 	ivec date = conv_to<ivec>::from(D);
 	vec y = raw.col(0);
-	mat x = raw.cols(1,n);
+	mat x_all = raw.cols(1,n);
 	mat x0 = raw.cols(n+1,n+n0); 
-	cout << "Size of x=21," << "x0=13" << endl;
 	// select features from x and x0
-
+	vector<string>::iterator it1;
+	uvec x_ind(x_select.size(),fill::zeros);
+	int i=0;
+	for (it1=x_select.begin();it1!=x_select.end();++it1){
+		for (it=col_names.begin();it!=col_names.end();++it){
+			if (strcmp((*it1).c_str(),(*it).c_str())==0){
+				x_ind(i) = distance(col_names.begin(),it); 	
+				cout << "x(" << i << ")=" << x_ind(i) << endl;
+				i++;
+			}
+		}
+	}
+	mat x = raw.cols(x_ind);
+	cout << "First record of x is" << endl;
+	x.row(0).print();
 
 	// find unique dates
 	uvec ind = find_unique(date);
