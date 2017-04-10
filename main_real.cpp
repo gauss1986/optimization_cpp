@@ -32,6 +32,28 @@ T * end(T (&ra)[N]){
 	return ra+N;
 }
 
+mat selectx(vector<string>& x_select, vector<string>& x_pool, mat& raw, const int offset){
+	// select features from x and x0
+	vector<string>::iterator it1;
+	vector<string>::iterator it;
+	uvec x_ind(x_select.size(),fill::zeros);
+	int i=0;
+	for (it1=x_select.begin();it1!=x_select.end();++it1){
+		for (it=x_pool.begin();it!=x_pool.end();++it){
+			if (strcmp((*it1).c_str(),(*it).c_str())==0){
+				x_ind(i) = distance(x_pool.begin(),it); 	
+				cout << "selected dof " << x_ind(i) << endl;
+				i++;
+			}
+		}
+	}
+	mat x = raw.cols(x_ind+offset);
+	cout << "First record of selection is" << endl;
+	x.row(0).print();
+
+	return x;
+}
+
 int main(int argc, char *argv[])
 {
 	int n = 21;
@@ -77,24 +99,12 @@ int main(int argc, char *argv[])
 	ivec date = conv_to<ivec>::from(D);
 	vec y = raw.col(0);
 	mat x_all = raw.cols(1,n);
-	mat x0 = raw.cols(n+1,n+n0); 
-	// select features from x and x0
-	vector<string>::iterator it1;
-	uvec x_ind(x_select.size(),fill::zeros);
-	int i=0;
-	for (it1=x_select.begin();it1!=x_select.end();++it1){
-		for (it=col_names.begin();it!=col_names.end();++it){
-			if (strcmp((*it1).c_str(),(*it).c_str())==0){
-				x_ind(i) = distance(col_names.begin(),it); 	
-				cout << "x(" << i << ")=" << x_ind(i) << endl;
-				i++;
-			}
-		}
-	}
-	mat x = raw.cols(x_ind);
-	cout << "First record of x is" << endl;
-	x.row(0).print();
+	mat x0_all = raw.cols(n+1,n+n0); 
 
+	// select x from list of x_select 
+	mat x = selectx(x_select, col_names, raw, -2);
+	mat x0 = selectx(x0_select, col_names, raw, -2);
+	
 	// find unique dates
 	uvec ind = find_unique(date);
 	int N = ind.n_elem;
