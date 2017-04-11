@@ -154,19 +154,22 @@ int main(int argc, char *argv[])
 	cout << "bootstrapping by day" << endl;
     TickTock T;
     T.tick();
+	mat mc_OLS(N_bs,1+n+n0);
+	mat mc_MS(N_bs,1+n+n0);
 	for (int i=0;i<N_bs;i++){
 		if ((i%(N_bs/20)==0)) cout << double(i)/N_bs*100 << "%" << endl;
         // resampling
 		uvec samplepoints = resample(N);
         vec c_OLS = solve(x_OLS.rows(samplepoints),y_OLS(samplepoints));
 		vec c_MS = cov(xy_MS.rows(samplepoints)).i()*mean(xy_MS.rows(samplepoints)).t();
+		mc_OLS.row(i) = c_OLS.t();
+		mc_MS.row(i) = c_MS.t();
 	}
     T.tock("Bootstrapping costs ");
 
 	// just once
 	vec c_OLS = solve(x_OLS,y_OLS);
 	vec c_MS = cov(xy_MS).i()*mean(xy_MS).t();
-
 	mat A(1+n+n0,2,fill::ones);
 	A.col(1) = c_MS;
 	vec c_norm = solve(A,c_OLS);
@@ -187,13 +190,22 @@ int main(int argc, char *argv[])
 	mat c_x0 = join_horiz(join_horiz(join_horiz(c_OLS(span(n+1,n+n0)),c_MS(span(n+1,n+n0))),c_MS_norm(span(n+1,n+n0))),c_MS_norm2(span(n+1,n+n0)));
 	c_x0.print();
 
+	vec c_OLS_obs = solve(join_horiz(join_horiz(ones(N_row),x),x0),y);
+	cout << "C_OLS_Obs" << endl;
+	c_OLS_obs.print();
+
 	double shp_D_OLS;
 	double shp_D_MS;
+	double shp_D_OLS_obs;
 	vec shp_C_OLS = comp_shp_real(shp_D_OLS, c_OLS, x, x0, y, date, contracts_all, contracts, N);
+	vec shp_C_OLS_obs = comp_shp_real(shp_D_OLS_obs, c_OLS_obs, x, x0, y, date, contracts_all, contracts, N);
 	vec shp_C_MS = comp_shp_real(shp_D_MS, c_MS, x, x0, y, date, contracts_all, contracts, N);
 	cout << "OLS shp=" << shp_D_OLS << endl;
 	cout << "Contract shp: " << endl;
 	shp_C_OLS.t().print();
+	cout << "OLS by observation shp=" << shp_D_OLS_obs << endl;
+	cout << "Contract shp: " << endl;
+	shp_C_OLS_obs.t().print();
 	cout << "MS shp=" << shp_D_MS << endl;
 	cout << "Contract shp: " << endl;
 	shp_C_MS.t().print();

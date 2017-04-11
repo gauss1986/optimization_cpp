@@ -183,9 +183,9 @@ void bsstat(mat mA, vec vx0, mat mx, mat my, vec vshp, mat mshp_contract, const 
     	// sigmasq
     	vec vy = my.col(i);
     	vec vy_copy(vy);
-	mat mx_sym(N,n+1,fill::ones);
-	mx_sym.col(1) = vx0;
-	mx_sym.col(2) = mx.col(i);
+		mat mx_sym(N,n+1,fill::ones);
+		mx_sym.col(1) = vx0;
+		mx_sym.col(2) = mx.col(i);
     	vy = vy-mx_sym*arma::mean(mA).t();
     	vy = vy%vy;
     	sigmasq(i) = arma::sum(vy)/(N-n-1); 
@@ -211,4 +211,7 @@ void bsstat(mat mA, vec vx0, mat mx, mat my, vec vshp, mat mshp_contract, const 
     	cout << "R2=" << R2 (i)<< ", Adj R2=" << R2_adj(i) << endl;
     }
     cout << endl;
+}
+
+void bsstat_real(mat mA, mat x, mat x0, vec y, vec vshp, mat mshp_contract, const int N, const int n, const int m){
 }
