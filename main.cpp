@@ -79,12 +79,13 @@ int main(int argc, char *argv[])
     // bootstrapping
     T.tick();
     for (int i=0;i<N_bs;i++){ 
-	if ((i%(N_bs/100)==0)) cout << double(i)/N_bs*100 << "%" << endl;
+		if ((i%(N_bs/100)==0)) cout << double(i)/N_bs*100 << "%" << endl;
         // resampling
-        vec vx0_sample(N);
-        mat mx_sample(N,m);
-        mat my_sample(N,m);
-        resample_arma(vx0_sample,mx_sample,my_sample,vx0,mx,my);
+		uvec samplepoints = resample(N);
+        vec vx0_sample = vx0(samplepoints);
+        mat mx_sample = mx.rows(samplepoints);
+        mat my_sample = my.rows(samplepoints);
+        //resample_arma(vx0_sample,mx_sample,my_sample,vx0,mx,my);
         // OLS
         vec A_OLS = OLS_day(N, n, m, mx_sample, my_sample, vx0_sample);
         mA_OLS.row(i) = A_OLS.t();

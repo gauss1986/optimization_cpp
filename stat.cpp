@@ -95,23 +95,22 @@ vector<vector<double> > simplestat(const vector<vector<double> >& data, int n_ro
     return stat_2D;
 }
 
-void resample_arma(vec& vx0_sample, mat& mx_sample, mat& my_sample, vec& vx0, mat& mx, mat& my){
-    // sample arma form of matrix and vectors
-    // sample x0,x and y
+uvec resample(int N){
     arma_rng::set_seed_random(); 
-    int N = vx0.n_elem;
-    int n = mx.n_cols;
     vec sample(N); 
     sample.randu();
     sample = sample * N;
     vec sample_processed = arma::trunc(sample);
-
-    for (int i=0;i<vx0.n_rows;i++){
-        vx0_sample(i) = vx0(sample_processed(i));
-        mx_sample.row(i) = mx.row(sample_processed(i));
-        my_sample.row(i) = my.row(sample_processed(i));
-    }
+	return conv_to<uvec>::from(sample_processed);
 }
+
+//void resample_mat(vec& samplepoints, mat& m_sample, mat& m){
+//    for (int i=0;i<vx0.n_rows;i++){
+//        vx0_sample(i) = vx0(sample_processed(i));
+//        mx_sample.row(i) = mx.row(sample_processed(i));
+//        my_sample.row(i) = my.row(sample_processed(i));
+//    }
+//}
 
 vec comp_shp(double& shp, const int n, const vec& A, const mat& mx, const mat& my, const vec& vx0){
     // compute the sharpe ratio

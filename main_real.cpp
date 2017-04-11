@@ -27,13 +27,14 @@ using namespace arma;
 using namespace std;
 using namespace boost::math;
 
+/* find end of a vector */
 template<typename T, size_t N>
 T * end(T (&ra)[N]){
 	return ra+N;
 }
 
+/* select features from x and x0 */
 mat selectx(vector<string>& x_select, vector<string>& x_pool, mat& raw, const int offset){
-	// select features from x and x0
 	vector<string>::iterator it1;
 	vector<string>::iterator it;
 	uvec x_ind(x_select.size(),fill::zeros);
@@ -58,6 +59,7 @@ int main(int argc, char *argv[])
 {
 	int Nx = 21;
 	int Nx0 = 13;
+	int N_bs = 500; // bootstrapping number
 	const char *x_names[] = {"O.1","H.1","C.1"};
 	vector<string> x_select(x_names,end(x_names));	
 	const char *x0_names[] = {"SP.CC.1","TY.CC.1"};
@@ -146,8 +148,21 @@ int main(int argc, char *argv[])
 	xy_MS.col(0) = y_OLS;
 	cout << "Min contracts per day " << min(c_D) << ", max " << max(c_D) << ", mean " << mean(c_D) << endl;
 
+	// bootstrapping by day
+	cout << "bootstrapping by day" << endl;
+    TickTock T;
+    T.tick();
+	for (int i=0;i<N_bs;i++){
+		if ((i%(N_bs/20)==0)) cout << double(i)/N_bs*100 << "%" << endl;
+        // resampling
+		uvec samplepoints = resample(N);
+        vec c_OLS = solve(x_OLS.rows(samplepoints),y_OLS(samplepoints));
+		vec c_MS = cov(xy_MS.rows(samplepoints)).i()*mean(xy_MS.rows(samplepoints)).t();
+	}
+    T.tock("Bootstrapping costs ");
+
+	// just once
 	vec c_OLS = solve(x_OLS,y_OLS);
-	
 	vec c_MS = cov(xy_MS).i()*mean(xy_MS).t();
 
 	mat A(1+n+n0,2,fill::ones);
