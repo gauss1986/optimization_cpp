@@ -70,9 +70,9 @@ int main(int argc, char *argv[])
 	char sep = ' ';
 	int N_row,N_col;
 	vector<string> col_names; // column names
-	vector<string> contracts; // contract names on each row
+	vector<string> contracts_all; // contract names on each row
 	vector<int> D;
-    mat raw = readtxt_real(f_x0,N_row,N_col,sep,D,col_names,contracts);
+    mat raw = readtxt_real(f_x0,N_row,N_col,sep,D,col_names,contracts_all);
 	// print out some statistics of the data
 	cout << "There are " << col_names.size()-3 << " number of variables." << endl;
 	cout << "The variables are ";
@@ -81,6 +81,8 @@ int main(int argc, char *argv[])
 		cout << " " << *it;
 	cout << endl;
 	cout << "There are " << N_row << " records in total." << endl;
+	vector<string> contracts = contracts_all;
+	//contracts = contracts_all;
 	it = unique(contracts.begin(),contracts.end());
 	contracts.erase(it, contracts.end());
 	cout << "There are in total " << contracts.size() << " contracts" << endl;
@@ -187,10 +189,15 @@ int main(int argc, char *argv[])
 
 	double shp_D_OLS;
 	double shp_D_MS;
-	comp_shp_real(shp_D_OLS, c_OLS, x, x0, y, date, ind, N);
-	comp_shp_real(shp_D_MS, c_MS, x, x0, y, date, ind, N);
+	vec shp_C_OLS = comp_shp_real(shp_D_OLS, c_OLS, x, x0, y, date, contracts_all, contracts, N);
+	vec shp_C_MS = comp_shp_real(shp_D_MS, c_MS, x, x0, y, date, contracts_all, contracts, N);
 	cout << "OLS shp=" << shp_D_OLS << endl;
+	cout << "Contract shp: " << endl;
+	shp_C_OLS.t().print();
 	cout << "MS shp=" << shp_D_MS << endl;
+	cout << "Contract shp: " << endl;
+	shp_C_MS.t().print();
+	
 
 	return 1;
 }

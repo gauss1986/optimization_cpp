@@ -134,10 +134,11 @@ vec comp_shp(double& shp, const int n, const vec& A, const mat& mx, const mat& m
     return shp_contract;
 }
 
-void comp_shp_real(double& shp_D, const vec& A, const mat& x, const mat& x0, const vec& y, const ivec& date, const uvec& ind, const int N){
-	// compute day shp
+vec comp_shp_real(double& shp_D, const vec& A, const mat& x, const mat& x0, const vec& y, const ivec& date, vector<string>& contracts_all, vector<string>& contracts, const int N){
 	vec p = y%(join_horiz(ones(y.n_elem),join_horiz(x,x0))*A);	
+	// compute day shp
 	vec p_D(N); 
+	uvec ind = find_unique(date);
 	for (int i=0;i<N;i++){
 		// index for records on the same day
 		uvec m_i = find(date==date(ind(i)));	
@@ -145,6 +146,22 @@ void comp_shp_real(double& shp_D, const vec& A, const mat& x, const mat& x0, con
 		p_D(i) = arma::sum(p(m_i));
 	}
 	shp_D = arma::mean(p_D)/stddev(p_D);	
+	// compute shp by contract
+	vec shp_C(contracts.size(),fill::zeros);
+	vector<string>::iterator i;
+	vector<string>::iterator j;
+	for (i=contracts.begin();i!=contracts.end();++i){
+		int indi = distance(contracts.begin(),i);
+		vector<double> temp;
+		for (j=contracts_all.begin();j!=contracts_all.end();++j){
+			if (strcmp((*i).c_str(),(*j).c_str())==0){
+				temp.push_back(p(distance(contracts_all.begin(),j)));	
+			}
+		}
+		vec p_C = conv_to<vec>::from(temp);
+		shp_C(indi) = arma::mean(p_C)/stddev(p_C);
+	}
+	return shp_C;	
 }
 
 void bsstat(mat mA, vec vx0, mat mx, mat my, vec vshp, mat mshp_contract, const int N, const int n, const int m){
