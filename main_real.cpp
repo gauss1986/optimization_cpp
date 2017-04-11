@@ -119,8 +119,6 @@ int main(int argc, char *argv[])
 
 	// parsing data w.r.t. dates
 	uvec c_D(N,fill::zeros); // contracts on record per day
-	mat x_OLS(N,1+n+n0);
-	vec y_OLS(N);
 	mat xy_MS(N,1+n+n0);
 	for (int i=0;i<N;i++){
 		// index for records on the same day
@@ -131,23 +129,23 @@ int main(int argc, char *argv[])
 		mat x0_D = x0.rows(m_i);
 		vec y_D = y(m_i);
 		// sanity check x0 values on the same day, should be identical for different contracts
-		if (as_scalar(max(max(x0_D)-min(x0_D),1)) > 1e-5) 
-			cout << "x0 values on day " << date(ind(i)) << " are not identical for different contracts!" << endl;	
+		//if (as_scalar(max(max(x0_D)-min(x0_D),1)) > 1e-5) 
+		//	cout << "x0 values on day " << date(ind(i)) << " are not identical for different contracts!" << endl;	
 		// set y_OLS
-		y_OLS(i) = sum(y_D);
+		xy_MS(i,0) = sum(y_D);
 		// set x_OLS
-		x_OLS(i,0) = c_D(i);
-		x_OLS(i,span(1,n)) = sum(x_D);
-		x_OLS(i,span(n+1,n+n0)) = sum(x0.rows(m_i));
+		//x_OLS(i,0) = c_D(i);
+		//x_OLS(i,span(1,n)) = sum(x_D);
+		//x_OLS(i,span(n+1,n+n0)) = sum(x0.rows(m_i));
 		// set xy_MS
 		for (int j=0;j<n;j++){
 			xy_MS(i,j+1) = sum(x_D.col(j)%y_D);
 		}
 		for (int j=0;j<n0;j++){
-			xy_MS(i,1+n+j) = x0_D(0,j)*y_OLS(i);
+			xy_MS(i,1+n+j) = x0_D(0,j)*sum(y_D);
 		}
 	}
-	xy_MS.col(0) = y_OLS;
+	//xy_MS.col(0) = y_OLS;
 	cout << "Min contracts per day " << min(c_D) << ", max " << max(c_D) << ", mean " << mean(c_D) << endl;
 
 	// bootstrapping by day
@@ -160,15 +158,29 @@ int main(int argc, char *argv[])
 		if ((i%(N_bs/20)==0)) cout << double(i)/N_bs*100 << "%" << endl;
         // resampling
 		uvec samplepoints = resample(N);
-        vec c_OLS = solve(x_OLS.rows(samplepoints),y_OLS(samplepoints));
-		vec c_MS = cov(xy_MS.rows(samplepoints)).i()*mean(xy_MS.rows(samplepoints)).t();
+		mat x_OLS(N_row,1+n+n0);
+		vec y_OLS(N_row);
+		int j = 0;
+		for (int k=0;k<N;k++){
+			// index for records on the same day
+			uvec m_i = find(date==date(samplepoints(k)));	
+			x_OLS(span(j,j+m_i.n_elem-1),span(1,n)) = x.rows(m_i);
+			x_OLS(span(j,j+m_i.n_elem-1),span(n+1,n+n0)) = x0.rows(m_i);
+			y_OLS(span(j,j+m_i.n_elem-1)) = y(m_i);
+			j = j+m_i.n_elem;
+		}
+		if (j!=N_row) cout << "Bootstrapping has some issues!" << endl;
+		// OLS
+        vec c_OLS = solve(x_OLS,y_OLS);
 		mc_OLS.row(i) = c_OLS.t();
+		// MS
+		vec c_MS = cov(xy_MS.rows(samplepoints)).i()*mean(xy_MS.rows(samplepoints)).t();
 		mc_MS.row(i) = c_MS.t();
 	}
     T.tock("Bootstrapping costs ");
 
 	// just once
-	vec c_OLS = solve(x_OLS,y_OLS);
+	vec c_OLS = solve(x,y);
 	vec c_MS = cov(xy_MS).i()*mean(xy_MS).t();
 	mat A(1+n+n0,2,fill::ones);
 	A.col(1) = c_MS;
