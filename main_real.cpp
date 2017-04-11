@@ -56,9 +56,9 @@ mat selectx(vector<string>& x_select, vector<string>& x_pool, mat& raw, const in
 
 int main(int argc, char *argv[])
 {
-	int n = 21;
-	int n0 = 13;
-	const char *x_names[] = {"O.1","H.1"};
+	int Nx = 21;
+	int Nx0 = 13;
+	const char *x_names[] = {"O.1","H.1","C.1"};
 	vector<string> x_select(x_names,end(x_names));	
 	const char *x0_names[] = {"SP.CC.1","TY.CC.1"};
 	vector<string> x0_select(x0_names,end(x0_names));	
@@ -86,24 +86,27 @@ int main(int argc, char *argv[])
 	for (it=contracts.begin();it!=contracts.end();++it)
 		cout << " " << *it;
 	cout << endl;
-	cout << "Selected x features: ";
-	for (it=x_select.begin();it!=x_select.end();++it)
-		cout << " " << *it;
-	cout << endl;
-	cout << "Selected x0 features: ";
-	for (it=x0_select.begin();it!=x0_select.end();++it)
-		cout << " " << *it;
-	cout << endl;
 
 	// parsing data
 	ivec date = conv_to<ivec>::from(D);
 	vec y = raw.col(0);
-	mat x_all = raw.cols(1,n);
-	mat x0_all = raw.cols(n+1,n+n0); 
+	mat x_all = raw.cols(1,Nx);
+	mat x0_all = raw.cols(Nx+1,Nx+Nx0); 
 
 	// select x from list of x_select 
-	mat x = selectx(x_select, col_names, raw, -2);
+	cout << "Selected x features: ";
+	for (it=x_select.begin();it!=x_select.end();++it)
+		cout << " " << *it;
+	cout << endl;
+	mat x = selectx(x_select, col_names, raw, -2); // offset -2 is needed to take care of the contract name and date
+	int n = x.n_cols;
+	cout << "Selected x0 features: ";
+	for (it=x0_select.begin();it!=x0_select.end();++it)
+		cout << " " << *it;
+	cout << endl;
 	mat x0 = selectx(x0_select, col_names, raw, -2);
+	int n0 = x0.n_cols;
+	cout << "n=" << n << ", n0=" << n0 << endl;
 	
 	// find unique dates
 	uvec ind = find_unique(date);
