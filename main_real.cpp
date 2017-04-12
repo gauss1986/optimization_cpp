@@ -220,49 +220,16 @@ int main(int argc, char *argv[])
 	cout << "Stats of MS:" << endl;
 	printbs(m_MS, s_MS, t_MS, x_select, x0_select, n, n0);
 
-	// just once
-	vec c_OLS = solve(x,y);
-	vec c_MS = cov(xy_MS).i()*mean(xy_MS).t();
-	mat A(1+n+n0,2,fill::ones);
-	A.col(1) = c_MS;
-	vec c_norm = solve(A,c_OLS);
-	vec c_MS_norm = c_MS*c_norm(1); 
-	vec c_MS_norm2 = A*c_norm; 
-
-	cout << endl;
-	cout << "Results:" << endl;
-	cout << "c_OLS	" << "c_MS	"<< "c_MS_norm	" << "c_MS_norm2"<< endl;
-	cout << "intersection" << endl;
-	cout << c_OLS(0) << "	" << c_MS(0) << "	" << c_MS_norm(0) << "	" <<  c_MS_norm2(0) << endl; 
-
-	cout << "c_x" << endl;
-	mat c_x = join_horiz(join_horiz(join_horiz(c_OLS(span(1,n)),c_MS(span(1,n))),c_MS_norm(span(1,n))),c_MS_norm2(span(1,n)));
-	c_x.print();
-
-	cout << "c_x0" << endl;
-	mat c_x0 = join_horiz(join_horiz(join_horiz(c_OLS(span(n+1,n+n0)),c_MS(span(n+1,n+n0))),c_MS_norm(span(n+1,n+n0))),c_MS_norm2(span(n+1,n+n0)));
-	c_x0.print();
-
-	vec c_OLS_obs = solve(join_horiz(join_horiz(ones(N_row),x),x0),y);
-	cout << "C_OLS_Obs" << endl;
-	c_OLS_obs.print();
-
 	double shp_D_OLS;
 	double shp_D_MS;
-	double shp_D_OLS_obs;
-	vec shp_C_OLS = comp_shp_real(shp_D_OLS, c_OLS, x, x0, y, date, contracts_all, contracts, N);
-	vec shp_C_OLS_obs = comp_shp_real(shp_D_OLS_obs, c_OLS_obs, x, x0, y, date, contracts_all, contracts, N);
-	vec shp_C_MS = comp_shp_real(shp_D_MS, c_MS, x, x0, y, date, contracts_all, contracts, N);
+	vec shp_C_OLS = comp_shp_real(shp_D_OLS, m_OLS, x, x0, y, date, contracts_all, contracts, N);
+	vec shp_C_MS = comp_shp_real(shp_D_MS, m_MS, x, x0, y, date, contracts_all, contracts, N);
 	cout << "OLS shp=" << shp_D_OLS << endl;
 	cout << "Contract shp: " << endl;
-	shp_C_OLS.t().print();
-	cout << "OLS by observation shp=" << shp_D_OLS_obs << endl;
-	cout << "Contract shp: " << endl;
-	shp_C_OLS_obs.t().print();
+	//shp_C_OLS.t().print();
 	cout << "MS shp=" << shp_D_MS << endl;
 	cout << "Contract shp: " << endl;
-	shp_C_MS.t().print();
-	
+	//shp_C_MS.t().print();
 
 	return 1;
 }
