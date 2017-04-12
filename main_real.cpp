@@ -56,7 +56,10 @@ mat selectx(vector<string>& x_select, vector<string>& x_pool, mat& raw, const in
 }
 
 /* print out stats of bootstrapping */
-void printbs(const vec& m_OLS, const vec& s_OLS, const vec& t_OLS, const vector<string>& x_select, const vector<string>& x0_select, int n, int n0){
+void printbs(const mat& mc_OLS, const vector<string>& x_select, const vector<string>& x0_select, int n, int n0){
+	vec m_OLS = arma::mean(mc_OLS).t();
+	vec s_OLS = stddev(mc_OLS).t();
+    vec t_OLS = m_OLS/s_OLS;
 	cout << "		" << "Estimate	" << "Std. Error	" << "t value	" << endl;  
 	cout << "(Intercept)	";
 	vec output;
@@ -81,7 +84,7 @@ int main(int argc, char *argv[])
 {
 	int Nx = 21;
 	int Nx0 = 13;
-	int N_bs = 50; // bootstrapping number
+	int N_bs = 100; // bootstrapping number
 	const char *x_names[] = {"O.1","H.1","C.1"};
 	vector<string> x_select(x_names,end(x_names));	
 	const char *x0_names[] = {"SP.CC.1","TY.CC.1"};
@@ -142,10 +145,12 @@ int main(int argc, char *argv[])
 	// parsing data w.r.t. dates
 	uvec c_D(N,fill::zeros); // contracts on record per day
 	mat xy_MS(N,1+n+n0);
+	field<uvec> m_D(N); 
 	for (int i=0;i<N;i++){
 		// index for records on the same day
 		uvec m_i = find(date==date(ind(i)));	
 		c_D(i) = m_i.n_elem;
+		m_D(i) = m_i;
 		// day x, x0 and y
 		mat x_D = x.rows(m_i);
 		mat x0_D = x0.rows(m_i);
@@ -171,62 +176,72 @@ int main(int argc, char *argv[])
     TickTock T;
 	mat mc_OLS(N_bs,1+n+n0);
 	mat mc_MS(N_bs,1+n+n0);
+	mat mc_MS_norm1(N_bs,1+n+n0);
+	mat mc_MS_norm2(N_bs,1+n+n0);
 	T.tick();
 	for (int i=0;i<N_bs;i++){
-		//if ((i%(N_bs/100)==0)) cout << double(i)/N_bs*100 << "%" << endl;
-        cout << i << "/" << N_bs << endl;
+		if ((i%(N_bs/20)==0)) cout << double(i)/N_bs*100 << "%" << endl;
+        //cout << i << "/" << N_bs << endl;
 		// resampling
 		uvec samplepoints = resample(N);
 		int N_record = sum(c_D(samplepoints));
 		//cout << "N_record=" << N_record << endl;
-		mat x_OLS(N_record,1+n+n0,fill::ones);
+		mat x_OLS(N_record,1+n+n0);
 		vec y_OLS(N_record);
 		int j = 0;
-		T.tick();
+		//T.tick();
 		for (int k=0;k<N;k++){
-			//cout << "Day " << k << "/" << N ;
-			// index for records on the same day
-			uvec m_i = find(date==date(ind(samplepoints(k))));	
-			//cout << "C_D(k)=" << c_D(samplepoints(k)) << "vs m_i.n_elem=" << m_i.n_elem << endl;
-			x_OLS(span(j,j+m_i.n_elem-1),span(1,n)) = x.rows(m_i);
-			x_OLS(span(j,j+m_i.n_elem-1),span(n+1,n+n0)) = x0.rows(m_i);
+			uvec m_i = m_D(samplepoints(k));
+			x_OLS.rows(j,j+m_i.n_elem-1) = join_horiz(join_horiz(ones(m_i.n_elem),x.rows(m_i)),x0.rows(m_i));
 			y_OLS(span(j,j+m_i.n_elem-1)) = y(m_i);
 			j = j+m_i.n_elem;
-			//cout << ", Record " << j << "/" << N_record << endl;
 		}
-		T.tock("Assembliing x/y for OLS took ");
-		//if (j!=N_row) cout << "Bootstrapping has some issues!" << endl;
+		//T.tock("Assembliing x/y for OLS took ");
 		// OLS
-		T.tick();
+		//T.tick();
         vec c_OLS = solve(x_OLS,y_OLS);
-    	T.tock("OLS costs ");
+    	//T.tock("OLS costs ");
 		mc_OLS.row(i) = c_OLS.t();
 		// MS
-		T.tick();
+		//T.tick();
 		vec c_MS = cov(xy_MS.rows(samplepoints)).i()*mean(xy_MS.rows(samplepoints)).t();
-    	T.tock("MS costs ");
+    	//T.tock("MS costs ");
 		mc_MS.row(i) = c_MS.t();
+		// Normalize MS
+		mat A(1+n+n0,2,fill::ones);
+		A.col(1) = c_MS;
+		vec c = solve(A,c_OLS);
+		vec c_MS_norm1 = A*c; 
+		c(0) = 0;
+		vec c_MS_norm2 = A*c; 
+		mc_MS_norm1.row(i) = c_MS_norm1.t();
+		mc_MS_norm2.row(i) = c_MS_norm2.t();
 	}
 	T.tock("Bootstrapping costs:");
-	vec m_OLS = arma::mean(mc_OLS).t();
-	vec m_MS = arma::mean(mc_MS).t();
-	vec s_OLS = stddev(mc_OLS).t();
-	vec s_MS = stddev(mc_MS).t();
-    vec t_OLS = m_OLS/s_OLS;
-    vec t_MS = m_MS/s_MS;
 	cout << "Stats of OLS:" << endl;
-	printbs(m_OLS, s_OLS, t_OLS, x_select, x0_select, n, n0);
+	printbs(mc_OLS, x_select, x0_select, n, n0);
 	cout << "Stats of MS:" << endl;
-	printbs(m_MS, s_MS, t_MS, x_select, x0_select, n, n0);
+	printbs(mc_MS, x_select, x0_select, n, n0);
+	cout << "Stats of MS norm1:" << endl;
+	printbs(mc_MS_norm1, x_select, x0_select, n, n0);
+	cout << "Stats of MS norm2:" << endl;
+	printbs(mc_MS_norm2, x_select, x0_select, n, n0);
 
 	double shp_D_OLS;
+	vec shp_C_OLS = comp_shp_real(shp_D_OLS, mean(mc_OLS).t(), x, x0, y, date, contracts_all, contracts, N);
 	double shp_D_MS;
-	vec shp_C_OLS = comp_shp_real(shp_D_OLS, m_OLS, x, x0, y, date, contracts_all, contracts, N);
-	vec shp_C_MS = comp_shp_real(shp_D_MS, m_MS, x, x0, y, date, contracts_all, contracts, N);
+	vec shp_C_MS = comp_shp_real(shp_D_MS, mean(mc_MS).t(), x, x0, y, date, contracts_all, contracts, N);
+	double shp_D_MS_norm1;
+	vec shp_C_MS_norm1 = comp_shp_real(shp_D_MS_norm1, mean(mc_MS_norm1).t(), x, x0, y, date, contracts_all, contracts, N);
+	double shp_D_MS_norm2;
+	vec shp_C_MS_norm2 = comp_shp_real(shp_D_MS_norm2, mean(mc_MS_norm2).t(), x, x0, y, date, contracts_all, contracts, N);
+
 	cout << "OLS shp=" << shp_D_OLS << endl;
 	//cout << "Contract shp: " << endl;
 	//shp_C_OLS.t().print();
 	cout << "MS shp=" << shp_D_MS << endl;
+	cout << "MS norm1 shp=" << shp_D_MS_norm1 << endl;
+	cout << "MS norm2 shp=" << shp_D_MS_norm2 << endl;
 	//cout << "Contract shp: " << endl;
 	//shp_C_MS.t().print();
 
