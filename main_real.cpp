@@ -147,37 +147,45 @@ int main(int argc, char *argv[])
 	}
 	//xy_MS.col(0) = y_OLS;
 	cout << "Min contracts per day " << min(c_D) << ", max " << max(c_D) << ", mean " << mean(c_D) << endl;
+	cout << "sum(c_D)=" << sum(c_D) << endl;
 
 	// bootstrapping by day
 	cout << "bootstrapping by day" << endl;
     TickTock T;
-    T.tick();
 	mat mc_OLS(N_bs,1+n+n0);
 	mat mc_MS(N_bs,1+n+n0);
 	for (int i=0;i<N_bs;i++){
-		if ((i%(N_bs/20)==0)) cout << double(i)/N_bs*100 << "%" << endl;
+		if ((i%(N_bs/100)==0)) cout << double(i)/N_bs*100 << "%" << endl;
         // resampling
 		uvec samplepoints = resample(N);
-		mat x_OLS(N_row,1+n+n0);
-		vec y_OLS(N_row);
+		int N_record = sum(c_D(samplepoints));
+		//cout << "N_record=" << N_record << endl;
+		mat x_OLS(N_record,1+n+n0,fill::ones);
+		vec y_OLS(N_record);
 		int j = 0;
 		for (int k=0;k<N;k++){
+			//cout << "Day " << k << "/" << N ;
 			// index for records on the same day
-			uvec m_i = find(date==date(samplepoints(k)));	
+			uvec m_i = find(date==date(ind(samplepoints(k))));	
+			//cout << "C_D(k)=" << c_D(samplepoints(k)) << "vs m_i.n_elem=" << m_i.n_elem << endl;
 			x_OLS(span(j,j+m_i.n_elem-1),span(1,n)) = x.rows(m_i);
 			x_OLS(span(j,j+m_i.n_elem-1),span(n+1,n+n0)) = x0.rows(m_i);
 			y_OLS(span(j,j+m_i.n_elem-1)) = y(m_i);
 			j = j+m_i.n_elem;
+			//cout << ", Record " << j << "/" << N_record << endl;
 		}
-		if (j!=N_row) cout << "Bootstrapping has some issues!" << endl;
+		//if (j!=N_row) cout << "Bootstrapping has some issues!" << endl;
 		// OLS
+		T.tick();
         vec c_OLS = solve(x_OLS,y_OLS);
+    	T.tock("OLS costs ");
 		mc_OLS.row(i) = c_OLS.t();
 		// MS
+		T.tick();
 		vec c_MS = cov(xy_MS.rows(samplepoints)).i()*mean(xy_MS.rows(samplepoints)).t();
+    	T.tock("MS costs ");
 		mc_MS.row(i) = c_MS.t();
 	}
-    T.tock("Bootstrapping costs ");
 
 	// just once
 	vec c_OLS = solve(x,y);
