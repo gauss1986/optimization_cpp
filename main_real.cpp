@@ -55,11 +55,33 @@ mat selectx(vector<string>& x_select, vector<string>& x_pool, mat& raw, const in
 	return x;
 }
 
+/* print out stats of bootstrapping */
+void printbs(const vec& m_OLS, const vec& s_OLS, const vec& t_OLS, const vector<string>& x_select, const vector<string>& x0_select, int n, int n0){
+	cout << "		" << "Estimate	" << "Std. Error	" << "t value	" << endl;  
+	cout << "(Intercept)	";
+	vec output;
+	output <<  m_OLS(0) << s_OLS(0) << t_OLS(0); 
+	output.t().print();
+	for (int i=0;i<n;i++){
+		cout << x_select[i] << "		";
+		vec output;
+		output <<  m_OLS(i+1) << s_OLS(i+1) << t_OLS(i+1); 
+		output.t().print();
+	}
+	for (int i=0;i<n0;i++){
+		//cout << x0_select[i] << "		"<< m_OLS(i+1+n)<< "	" << s_OLS(i+1+n) << "		" << t_OLS(i+1+n) << endl; 
+		cout << x0_select[i] << "		";
+		vec output;
+		output <<  m_OLS(i+n+1) << s_OLS(i+n+1) << t_OLS(i+n+1); 
+		output.t().print();
+	}
+}
+
 int main(int argc, char *argv[])
 {
 	int Nx = 21;
 	int Nx0 = 13;
-	int N_bs = 500; // bootstrapping number
+	int N_bs = 5; // bootstrapping number
 	const char *x_names[] = {"O.1","H.1","C.1"};
 	vector<string> x_select(x_names,end(x_names));	
 	const char *x0_names[] = {"SP.CC.1","TY.CC.1"};
@@ -155,8 +177,9 @@ int main(int argc, char *argv[])
 	mat mc_OLS(N_bs,1+n+n0);
 	mat mc_MS(N_bs,1+n+n0);
 	for (int i=0;i<N_bs;i++){
-		if ((i%(N_bs/100)==0)) cout << double(i)/N_bs*100 << "%" << endl;
-        // resampling
+		//if ((i%(N_bs/100)==0)) cout << double(i)/N_bs*100 << "%" << endl;
+        cout << "N_bs=" << i << endl;
+		// resampling
 		uvec samplepoints = resample(N);
 		int N_record = sum(c_D(samplepoints));
 		//cout << "N_record=" << N_record << endl;
@@ -186,6 +209,16 @@ int main(int argc, char *argv[])
     	T.tock("MS costs ");
 		mc_MS.row(i) = c_MS.t();
 	}
+	vec m_OLS = arma::mean(mc_OLS).t();
+	vec m_MS = arma::mean(mc_MS).t();
+	vec s_OLS = stddev(mc_OLS).t();
+	vec s_MS = stddev(mc_MS).t();
+    vec t_OLS = m_OLS/s_OLS;
+    vec t_MS = m_MS/s_MS;
+	cout << "Stats of OLS:" << endl;
+	printbs(m_OLS, s_OLS, t_OLS, x_select, x0_select, n, n0);
+	cout << "Stats of MS:" << endl;
+	printbs(m_MS, s_MS, t_MS, x_select, x0_select, n, n0);
 
 	// just once
 	vec c_OLS = solve(x,y);
