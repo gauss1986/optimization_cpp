@@ -81,7 +81,7 @@ int main(int argc, char *argv[])
 {
 	int Nx = 21;
 	int Nx0 = 13;
-	int N_bs = 500; // bootstrapping number
+	int N_bs = 50; // bootstrapping number
 	const char *x_names[] = {"O.1","H.1","C.1"};
 	vector<string> x_select(x_names,end(x_names));	
 	const char *x0_names[] = {"SP.CC.1","TY.CC.1"};
@@ -151,15 +151,10 @@ int main(int argc, char *argv[])
 		mat x0_D = x0.rows(m_i);
 		vec y_D = y(m_i);
 		// sanity check x0 values on the same day, should be identical for different contracts
-		//if (as_scalar(max(max(x0_D)-min(x0_D),1)) > 1e-5) 
-		//	cout << "x0 values on day " << date(ind(i)) << " are not identical for different contracts!" << endl;	
-		// set y_OLS
-		xy_MS(i,0) = sum(y_D);
-		// set x_OLS
-		//x_OLS(i,0) = c_D(i);
-		//x_OLS(i,span(1,n)) = sum(x_D);
-		//x_OLS(i,span(n+1,n+n0)) = sum(x0.rows(m_i));
+		if (as_scalar(max(max(x0_D)-min(x0_D),1)) > 1e-5) 
+			cout << "x0 values on day " << date(ind(i)) << " are not identical for different contracts!" << endl;	
 		// set xy_MS
+		xy_MS(i,0) = sum(y_D);
 		for (int j=0;j<n;j++){
 			xy_MS(i,j+1) = sum(x_D.col(j)%y_D);
 		}
@@ -187,6 +182,7 @@ int main(int argc, char *argv[])
 		mat x_OLS(N_record,1+n+n0,fill::ones);
 		vec y_OLS(N_record);
 		int j = 0;
+		T.tick();
 		for (int k=0;k<N;k++){
 			//cout << "Day " << k << "/" << N ;
 			// index for records on the same day
@@ -198,16 +194,17 @@ int main(int argc, char *argv[])
 			j = j+m_i.n_elem;
 			//cout << ", Record " << j << "/" << N_record << endl;
 		}
+		T.tock("Assembliing x/y for OLS took ");
 		//if (j!=N_row) cout << "Bootstrapping has some issues!" << endl;
 		// OLS
-		//T.tick();
+		T.tick();
         vec c_OLS = solve(x_OLS,y_OLS);
-    	//T.tock("OLS costs ");
+    	T.tock("OLS costs ");
 		mc_OLS.row(i) = c_OLS.t();
 		// MS
-		//T.tick();
+		T.tick();
 		vec c_MS = cov(xy_MS.rows(samplepoints)).i()*mean(xy_MS.rows(samplepoints)).t();
-    	//T.tock("MS costs ");
+    	T.tock("MS costs ");
 		mc_MS.row(i) = c_MS.t();
 	}
 	T.tock("Bootstrapping costs:");
