@@ -81,7 +81,7 @@ int main(int argc, char *argv[])
 {
 	int Nx = 21;
 	int Nx0 = 13;
-	int N_bs = 5; // bootstrapping number
+	int N_bs = 500; // bootstrapping number
 	const char *x_names[] = {"O.1","H.1","C.1"};
 	vector<string> x_select(x_names,end(x_names));	
 	const char *x0_names[] = {"SP.CC.1","TY.CC.1"};
@@ -176,9 +176,10 @@ int main(int argc, char *argv[])
     TickTock T;
 	mat mc_OLS(N_bs,1+n+n0);
 	mat mc_MS(N_bs,1+n+n0);
+	T.tick();
 	for (int i=0;i<N_bs;i++){
 		//if ((i%(N_bs/100)==0)) cout << double(i)/N_bs*100 << "%" << endl;
-        cout << "N_bs=" << i << endl;
+        cout << i << "/" << N_bs << endl;
 		// resampling
 		uvec samplepoints = resample(N);
 		int N_record = sum(c_D(samplepoints));
@@ -199,16 +200,17 @@ int main(int argc, char *argv[])
 		}
 		//if (j!=N_row) cout << "Bootstrapping has some issues!" << endl;
 		// OLS
-		T.tick();
+		//T.tick();
         vec c_OLS = solve(x_OLS,y_OLS);
-    	T.tock("OLS costs ");
+    	//T.tock("OLS costs ");
 		mc_OLS.row(i) = c_OLS.t();
 		// MS
-		T.tick();
+		//T.tick();
 		vec c_MS = cov(xy_MS.rows(samplepoints)).i()*mean(xy_MS.rows(samplepoints)).t();
-    	T.tock("MS costs ");
+    	//T.tock("MS costs ");
 		mc_MS.row(i) = c_MS.t();
 	}
+	T.tock("Bootstrapping costs:");
 	vec m_OLS = arma::mean(mc_OLS).t();
 	vec m_MS = arma::mean(mc_MS).t();
 	vec s_OLS = stddev(mc_OLS).t();
@@ -225,10 +227,10 @@ int main(int argc, char *argv[])
 	vec shp_C_OLS = comp_shp_real(shp_D_OLS, m_OLS, x, x0, y, date, contracts_all, contracts, N);
 	vec shp_C_MS = comp_shp_real(shp_D_MS, m_MS, x, x0, y, date, contracts_all, contracts, N);
 	cout << "OLS shp=" << shp_D_OLS << endl;
-	cout << "Contract shp: " << endl;
+	//cout << "Contract shp: " << endl;
 	//shp_C_OLS.t().print();
 	cout << "MS shp=" << shp_D_MS << endl;
-	cout << "Contract shp: " << endl;
+	//cout << "Contract shp: " << endl;
 	//shp_C_MS.t().print();
 
 	return 1;
