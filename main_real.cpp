@@ -91,6 +91,16 @@ int main(int argc, char *argv[])
 	const char *x0_names[] = {"SP.CC.1","TY.CC.1"};
 	vector<string> x0_select(x0_names,end(x0_names));	
 
+    int c;
+    // Read the dof, order, Gaussian order and type from input
+    while ((c=getopt(argc,(char **)argv, "n:"))!=-1){
+        switch(c) {
+            case 'n':
+                N_bs = strtod(optarg,(char **)NULL);
+                break;
+        }
+    }
+
     // read data
     string f_x0("data_example_boot.txt");
 	char sep = ' ';
