@@ -14,6 +14,7 @@
 #include <misc.h>
 #include <iterator>
 #include <ticktock.h>
+#include <omp.h>
 #include "armadillo"
 #include <boost/math/distributions/students_t.hpp>
 
@@ -178,8 +179,12 @@ int main(int argc, char *argv[])
 	mat mc_MS(N_bs,1+n+n0);
 	mat mc_MS_norm1(N_bs,1+n+n0);
 	mat mc_MS_norm2(N_bs,1+n+n0);
+    int nthreads;
 	T.tick();
-	for (int i=0;i<N_bs;i++){
+    #pragma omp parallel shared(N_bs,N,n,n0,m_D,y,xy_MS)
+    { 
+    #pragma omp for 
+    for (int i=0;i<N_bs;i++){
 		if ((i%(N_bs/20)==0)) cout << double(i)/N_bs*100 << "%" << endl;
         //cout << i << "/" << N_bs << endl;
 		// resampling
@@ -217,6 +222,11 @@ int main(int argc, char *argv[])
 		mc_MS_norm1.row(i) = c_MS_norm1.t();
 		mc_MS_norm2.row(i) = c_MS_norm2.t();
 	}
+    //output the number of threads
+    #pragma omp single
+    nthreads = omp_get_num_threads();
+    }
+    cout << "Number of threads in OMP:" << nthreads << endl;
 	T.tock("Bootstrapping costs:");
 	cout << "Stats of OLS:" << endl;
 	printbs(mc_OLS, x_select, x0_select, n, n0);

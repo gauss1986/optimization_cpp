@@ -1,6 +1,6 @@
-CXXFLAGS =  -O1 -I/opt/intel/composer_xe_2013.3.171/mkl/include -I${SCINET_BOOST_INC} -I${SCINET_ARMADILLO_INC}
+CXXFLAGS =  -O3 -fopenmp -I/opt/intel/composer_xe_2013.3.171/mkl/include -I${SCINET_BOOST_INC} -I${SCINET_ARMADILLO_INC}
 LDFLAGS =  -L${MKLROOT}/lib/intel64 -L${SCINET_BOOST_LIB} -L${SCINET_PCRE_LIB} -L${SCINET_XZ_LIB} -L${SCINET_ARMADILLO_LIB} -larmadillo -lmkl_intel_lp64 -lmkl_sequential -lmkl_core -lpthread 
-LDLIBS =  -lpthread -lboost_thread -lm
+LDLIBS =  -lpthread -lboost_thread -lm -parallel
 CXX = icpc
 
 all: main
